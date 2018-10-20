@@ -10,3 +10,5 @@ pack
 coverage
 .nyc_output
 .LAST_BUILD
+
+__pycache__
