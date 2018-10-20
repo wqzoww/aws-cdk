@@ -8,8 +8,8 @@ def HelloCDK(parent: cdk.App, name: str, **props):
     self = cdk.Stack(parent, name, props)
 
     table = dynamodb.Table(self, "Table", {"readCapacity": 1, "writeCapacity": 1})
-    table.addPartitionKey(dict(name="ID", type=dynamodb.AttributeType.String))
-    table.addSortKey(dict(name="Timestamp", type=dynamodb.AttributeType.Number))
+    table.add_partition_key(dict(name="ID", type=dynamodb.AttributeType.String))
+    table.add_sort_key(dict(name="Timestamp", type=dynamodb.AttributeType.Number))
 
     return self
 

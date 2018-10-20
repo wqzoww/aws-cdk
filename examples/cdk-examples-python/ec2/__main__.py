@@ -21,8 +21,8 @@ def AppWithVPC(parent: cdk.App, name: str, **props):
     )
     clb = elb.LoadBalancer(self, "LB", {"vpc": vpc, "internetFacing": True})
 
-    clb.addListener({"externalPort": 80})
-    clb.addTarget(asg)
+    clb.add_listener({"externalPort": 80})
+    clb.add_target(asg)
 
     return self
 
@@ -45,8 +45,8 @@ def MyApp(parent: cdk.App, name: str, **props):
     )
 
     clb = elb.LoadBalancer(self, "LB", {"vpc": vpc, "internetFacing": True})
-    clb.addListener({"externalPort": 80})
-    clb.addTarget(fleet)
+    clb.add_listener({"externalPort": 80})
+    clb.add_target(fleet)
 
     return self
 

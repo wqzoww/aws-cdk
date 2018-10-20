@@ -7,7 +7,7 @@ def DynamoPostsTable(parent: cdk.Construct, name: str):
 
     table = dynamodb.Table(self, "Table", {"readCapacity": 5, "writeCapacity": 5})
 
-    table.addPartitionKey({"name": "Alias", "type": dynamodb.AttributeType.String})
-    table.addSortKey({"name": "Timestamp", "type": dynamodb.AttributeType.String})
+    table.add_partition_key({"name": "Alias", "type": dynamodb.AttributeType.String})
+    table.add_sort_key({"name": "Timestamp", "type": dynamodb.AttributeType.String})
 
     return self
