@@ -4,59 +4,50 @@ import aws_cdk.aws_elasticloadbalancing as elb
 import aws_cdk.cdk as cdk
 
 
-def AppWithVPC(parent: cdk.App, name: str, **props):
-    self = cdk.Stack(parent, name, props)
+class AppWithVPC(cdk.Stack):
+    def __init__(self, parent: cdk.App, name: str, **kwargs):
+        super().__init__(parent, name, **kwargs)
 
-    vpc = ec2.VpcNetwork(self, "MyVpc")
-    asg = autoscaling.AutoScalingGroup(
-        self,
-        "MyASG",
-        {
-            "vpc": vpc,
-            "instanceType": ec2.InstanceTypePair(
+        vpc = ec2.VpcNetwork(self, "MyVpc")
+        asg = autoscaling.AutoScalingGroup(
+            self,
+            "MyASG",
+            vpc=vpc,
+            instanceType=ec2.InstanceTypePair(
                 ec2.InstanceClass.Standard3, ec2.InstanceSize.XLarge
             ),
-            "machineImage": ec2.AmazonLinuxImage(),
-        },
-    )
-    clb = elb.LoadBalancer(self, "LB", {"vpc": vpc, "internetFacing": True})
+            machineImage=ec2.AmazonLinuxImage(),
+        )
+        clb = elb.LoadBalancer(self, "LB", vpc=vpc, internetFacing=True)
 
-    clb.add_listener({"externalPort": 80})
-    clb.add_target(asg)
-
-    return self
+        clb.add_listener(externalPort=80)
+        clb.add_target(asg)
 
 
-def MyApp(parent: cdk.App, name: str, **props):
-    self = cdk.Stack(parent, name, props)
+class MyApp(cdk.Stack):
+    def __init__(self, parent: cdk.App, name: str, *, vpc, **kwargs):
+        super().__init__(parent, name, **kwargs)
 
-    vpc = props["infra"].vpc
-
-    fleet = autoscaling.AutoScalingGroup(
-        self,
-        "MyASG",
-        {
-            "vpc": vpc,
-            "instanceType": ec2.InstanceTypePair(
+        fleet = autoscaling.AutoScalingGroup(
+            self,
+            "MyASG",
+            vpc=vpc,
+            instanceType=ec2.InstanceTypePair(
                 ec2.InstanceClass.Standard3, ec2.InstanceSize.XLarge
             ),
-            "machineImage": ec2.AmazonLinuxImage(),
-        },
-    )
+            machineImage=ec2.AmazonLinuxImage(),
+        )
 
-    clb = elb.LoadBalancer(self, "LB", {"vpc": vpc, "internetFacing": True})
-    clb.add_listener({"externalPort": 80})
-    clb.add_target(fleet)
-
-    return self
+        clb = elb.LoadBalancer(self, "LB", vpc=vpc, internetFacing=True)
+        clb.add_listener(externalPort=80)
+        clb.add_target(fleet)
 
 
-def CommonInfrastructure(parent: cdk.App, name: str, **props):
-    self = cdk.Stack(parent, name, props)
+class CommonInfrastructure(cdk.Stack):
+    def __init__(self, parent: cdk.App, name: str, **kwargs):
+        super().__init__(parent, name, **kwargs)
 
-    self.vpc = ec2.VpcNetwork(self, "VPC")
-
-    return self
+        self.vpc = ec2.VpcNetwork(self, "VPC")
 
 
 app = cdk.App()
