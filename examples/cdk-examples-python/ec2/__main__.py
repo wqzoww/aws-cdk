@@ -25,8 +25,10 @@ class AppWithVPC(cdk.Stack):
 
 
 class MyApp(cdk.Stack):
-    def __init__(self, parent: cdk.App, name: str, *, vpc, **kwargs):
+    def __init__(self, parent: cdk.App, name: str, *, infra, **kwargs):
         super().__init__(parent, name, **kwargs)
+
+        vpc = ec2.VpcNetwork.import_(self, "VPC", infra.vpc)
 
         fleet = autoscaling.AutoScalingGroup(
             self,
@@ -47,7 +49,7 @@ class CommonInfrastructure(cdk.Stack):
     def __init__(self, parent: cdk.App, name: str, **kwargs):
         super().__init__(parent, name, **kwargs)
 
-        self.vpc = ec2.VpcNetwork(self, "VPC")
+        self.vpc = ec2.VpcNetwork(self, "VPC").export()
 
 
 app = cdk.App()
