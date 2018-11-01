@@ -1,4 +1,4 @@
-import aws_cdk.aws_cognito.cloudformation as cognito_cloudformation
+import aws_cdk.aws_cognito as cognito
 import aws_cdk.cdk as cdk
 
 
@@ -7,7 +7,7 @@ class CognitoChatRoomPool(cdk.Construct):
         super().__init__(parent, name)
 
         # Create chat room user pool
-        chatPool = cognito_cloudformation.UserPoolResource(
+        chatPool = cognito.cloudformation.UserPoolResource(
             self,
             "UserPool",
             adminCreateUserConfig={"allowAdminCreateUserOnly": False},
@@ -21,7 +21,7 @@ class CognitoChatRoomPool(cdk.Construct):
         )
 
         # Now for the client
-        cognito_cloudformation.UserPoolClientResource(
+        cognito.cloudformation.UserPoolClientResource(
             self,
             "UserPoolClient",
             clientName="Chat-Room",
