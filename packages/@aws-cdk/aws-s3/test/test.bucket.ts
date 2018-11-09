@@ -110,18 +110,18 @@ export = {
           "Statement": [
             {
             "Action": [
-              "kms:CancelKeyDeletion",
               "kms:Create*",
-              "kms:Delete*",
               "kms:Describe*",
-              "kms:Disable*",
               "kms:Enable*",
-              "kms:Get*",
               "kms:List*",
               "kms:Put*",
-              "kms:Revoke*",
-              "kms:ScheduleKeyDeletion",
               "kms:Update*",
+              "kms:Revoke*",
+              "kms:Disable*",
+              "kms:Get*",
+              "kms:Delete*",
+              "kms:ScheduleKeyDeletion",
+              "kms:CancelKeyDeletion"
             ],
             "Effect": "Allow",
             "Principal": {
@@ -479,9 +479,9 @@ export = {
             "Statement": [
             {
               "Action": [
-                "s3:GetBucket*",
-                "s3:GetObject*",
-                "s3:List*"
+              "s3:GetObject*",
+              "s3:GetBucket*",
+              "s3:List*"
               ],
               "Effect": "Allow",
               "Resource": [
@@ -492,9 +492,7 @@ export = {
                 "Fn::Join": [
                 "",
                 [
-                  {
-                  "Fn::ImportValue": "S1:MyBucketBucketArnE260558C"
-                  },
+                  { "Fn::ImportValue": "S1:MyBucketBucketArnE260558C" },
                   "/*"
                 ]
                 ]
@@ -536,9 +534,9 @@ export = {
           "Statement": [
           {
             "Action": [
-              "s3:GetBucket*",
-              "s3:GetObject*",
-              "s3:List*"
+            "s3:GetObject*",
+            "s3:GetBucket*",
+            "s3:List*"
             ],
             "Effect": "Allow",
             "Resource": [
@@ -605,12 +603,12 @@ export = {
             "Statement": [
               {
               "Action": [
-                "s3:Abort*",
-                "s3:DeleteObject*",
-                "s3:GetBucket*",
                 "s3:GetObject*",
+                "s3:GetBucket*",
                 "s3:List*",
+                "s3:DeleteObject*",
                 "s3:PutObject*",
+                "s3:Abort*"
               ],
               "Effect": "Allow",
               "Resource": [
@@ -669,18 +667,18 @@ export = {
             "Statement": [
               {
               "Action": [
-                "kms:CancelKeyDeletion",
                 "kms:Create*",
-                "kms:Delete*",
                 "kms:Describe*",
-                "kms:Disable*",
                 "kms:Enable*",
-                "kms:Get*",
                 "kms:List*",
                 "kms:Put*",
-                "kms:Revoke*",
-                "kms:ScheduleKeyDeletion",
                 "kms:Update*",
+                "kms:Revoke*",
+                "kms:Disable*",
+                "kms:Get*",
+                "kms:Delete*",
+                "kms:ScheduleKeyDeletion",
+                "kms:CancelKeyDeletion"
               ],
               "Effect": "Allow",
               "Principal": {
@@ -708,8 +706,8 @@ export = {
                 "kms:Decrypt",
                 "kms:DescribeKey",
                 "kms:Encrypt",
-                "kms:GenerateDataKey*",
                 "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
               ],
               "Effect": "Allow",
               "Principal": {
@@ -758,12 +756,12 @@ export = {
             "Statement": [
               {
               "Action": [
-                "s3:Abort*",
-                "s3:DeleteObject*",
-                "s3:GetBucket*",
                 "s3:GetObject*",
+                "s3:GetBucket*",
                 "s3:List*",
+                "s3:DeleteObject*",
                 "s3:PutObject*",
+                "s3:Abort*"
               ],
               "Effect": "Allow",
               "Resource": [
@@ -794,8 +792,8 @@ export = {
                 "kms:Decrypt",
                 "kms:DescribeKey",
                 "kms:Encrypt",
-                "kms:GenerateDataKey*",
                 "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
               ],
               "Effect": "Allow",
               "Resource": {
@@ -837,8 +835,8 @@ export = {
     const resources = stack.toCloudFormation().Resources;
     const actions = (id: string) => resources[id].Properties.PolicyDocument.Statement[0].Action;
 
-    test.deepEqual(actions('WriterDefaultPolicyDC585BCE'), [ 's3:Abort*', 's3:DeleteObject*', 's3:PutObject*' ]);
-    test.deepEqual(actions('PutterDefaultPolicyAB138DD3'), [ 's3:Abort*', 's3:PutObject*' ]);
+    test.deepEqual(actions('WriterDefaultPolicyDC585BCE'), [ 's3:DeleteObject*', 's3:PutObject*', 's3:Abort*' ]);
+    test.deepEqual(actions('PutterDefaultPolicyAB138DD3'), [ 's3:PutObject*', 's3:Abort*' ]);
     test.deepEqual(actions('DeleterDefaultPolicyCD33B8A0'), 's3:DeleteObject*');
     test.done();
   },
@@ -905,9 +903,9 @@ export = {
           "Statement": [
           {
             "Action": [
-              "s3:GetBucket*",
-              "s3:GetObject*",
-              "s3:List*"
+            "s3:GetObject*",
+            "s3:GetBucket*",
+            "s3:List*"
             ],
             "Effect": "Allow",
             "Resource": [
@@ -1139,6 +1137,44 @@ export = {
             }
           ],
           "Version": "2012-10-17"
+        }
+      }));
+      test.done();
+    }
+  },
+
+  'website configuration': {
+    'only index doc'(test: Test) {
+      const stack = new cdk.Stack();
+      new s3.Bucket(stack, 'Website', {
+        websiteIndexDocument: 'index2.html'
+      });
+      expect(stack).to(haveResource('AWS::S3::Bucket', {
+        WebsiteConfiguration: {
+          IndexDocument: "index2.html"
+        }
+      }));
+      test.done();
+    },
+    'fails if only error doc is specified'(test: Test) {
+      const stack = new cdk.Stack();
+      test.throws(() => {
+        new s3.Bucket(stack, 'Website', {
+          websiteErrorDocument: 'error.html'
+        });
+      }, /"websiteIndexDocument" is required if "websiteErrorDocument" is set/);
+      test.done();
+    },
+    'error and index docs'(test: Test) {
+      const stack = new cdk.Stack();
+      new s3.Bucket(stack, 'Website', {
+        websiteIndexDocument: 'index2.html',
+        websiteErrorDocument: 'error.html',
+      });
+      expect(stack).to(haveResource('AWS::S3::Bucket', {
+        WebsiteConfiguration: {
+          IndexDocument: "index2.html",
+          ErrorDocument: "error.html"
         }
       }));
       test.done();

@@ -4,6 +4,24 @@
 
 import { Environment } from './environment';
 
+/**
+ * Bump this to the library version if and only if the CX protocol changes.
+ *
+ * We could also have used 1, 2, 3, ... here to indicate protocol versions, but
+ * those then still need to be mapped to software versions to be useful. So we
+ * might as well use the software version as protocol version and immediately
+ * generate a useful error message from this.
+ *
+ * Note the following:
+ *
+ * - The versions are not compared in a semver way, they are used as
+ *    opaque ordered tokens.
+ * - The version needs to be set to the NEXT releasable version when it's
+ *   updated (as the current verison in package.json has already been released!)
+ * - The request does not have versioning yet, only the response.
+ */
+export const PROTO_RESPONSE_VERSION = '0.14.0';
+
 export const OUTFILE_NAME = 'cdk.out';
 export const OUTDIR_ENV = 'CDK_OUTDIR';
 export const CONTEXT_ENV = 'CDK_CONTEXT_JSON';
@@ -13,11 +31,18 @@ export const CONTEXT_ENV = 'CDK_CONTEXT_JSON';
  */
 export interface MissingContext {
   provider: string;
-  scope: string[];
-  args: string[];
+  props: {
+    account?: string;
+    region?: string;
+    [key: string]: any;
+  };
 }
 
 export interface SynthesizeResponse {
+  /**
+   * Protocol version
+   */
+  version: string;
   stacks: SynthesizedStack[];
   runtime?: AppRuntime;
 }
@@ -79,7 +104,13 @@ export const DEFAULT_ACCOUNT_CONTEXT_KEY = 'aws:cdk:toolkit:default-account';
 export const DEFAULT_REGION_CONTEXT_KEY = 'aws:cdk:toolkit:default-region';
 
 export const ASSET_METADATA = 'aws:cdk:asset';
-export interface AssetMetadataEntry {
+
+export interface FileAssetMetadataEntry {
+  /**
+   * Requested packaging style
+   */
+  packaging: 'zip' | 'file';
+
   /**
    * Path on disk to the asset
    */
@@ -91,11 +122,6 @@ export interface AssetMetadataEntry {
   id: string;
 
   /**
-   * Requested packaging style
-   */
-  packaging: 'zip' | 'file';
-
-  /**
    * Name of parameter where S3 bucket should be passed in
    */
   s3BucketParameter: string;
@@ -105,6 +131,35 @@ export interface AssetMetadataEntry {
    */
   s3KeyParameter: string;
 }
+
+export interface ContainerImageAssetMetadataEntry {
+  /**
+   * Type of asset
+   */
+  packaging: 'container-image';
+
+  /**
+   * Path on disk to the asset
+   */
+  path: string;
+
+  /**
+   * Logical identifier for the asset
+   */
+  id: string;
+
+  /**
+   * Name of the parameter that takes the repository name
+   */
+  repositoryParameter: string;
+
+  /**
+   * Name of the parameter that takes the tag
+   */
+  tagParameter: string;
+}
+
+export type AssetMetadataEntry = FileAssetMetadataEntry | ContainerImageAssetMetadataEntry;
 
 /**
  * Metadata key used to print INFO-level messages by the toolkit when an app is syntheized.

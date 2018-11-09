@@ -1,15 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
-bail="--no-bail"
+bail="--bail"
 while [[ "${1:-}" != "" ]]; do
     case $1 in
         -h|--help)
-            echo "Usage: build.sh [--bail|-b] [--force|-f]"
+            echo "Usage: build.sh [--no-bail] [--force|-f]"
             exit 1
             ;;
-        -b|--bail)
-            bail="--bail"
+        --no-bail)
+            bail="--no-bail"
             ;;
         -f|--force)
             export CDK_BUILD="--force"
@@ -27,7 +27,7 @@ if [ ! -d node_modules ]; then
 fi
 
 fail() {
-  echo "❌  Last command failed. Scroll up to see errors in log."
+  echo "❌  Last command failed. Scroll up to see errors in log (search for '!!!!!!!!')."
   exit 1
 }
 

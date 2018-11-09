@@ -1,3 +1,184 @@
+<a name="0.15.2"></a>
+## [0.15.2](https://github.com/awslabs/aws-cdk/compare/v0.15.1...v0.15.2) (2018-11-08)
+
+
+### Bug Fixes
+
+* correctly emit quoted YAML for account numbers ([#1105](https://github.com/awslabs/aws-cdk/issues/1105)) ([b4d9155](https://github.com/awslabs/aws-cdk/commit/b4d9155)), closes [#1100](https://github.com/awslabs/aws-cdk/issues/1100) [#1098](https://github.com/awslabs/aws-cdk/issues/1098)
+* **aws-ecs:** fix use of published NPM package with TypeScript ([#1117](https://github.com/awslabs/aws-cdk/issues/1117)) ([ebfb522](https://github.com/awslabs/aws-cdk/commit/ebfb522))
+
+
+### Features
+
+* **aws-ecs:** Add desired count to LoadBalanced[Fargate|EC2]Service ([#1111](https://github.com/awslabs/aws-cdk/issues/1111)) ([cafcc11](https://github.com/awslabs/aws-cdk/commit/cafcc11))
+
+<a name="0.15.1"></a>
+## [0.15.1](https://github.com/awslabs/aws-cdk/compare/v0.15.0...v0.15.1) (2018-11-06)
+
+### Bug Fixes
+
+* Update peer dependencies to refer to correct version so NPM installs don't fail.
+* Switch back to `js-yaml` as `yaml` was emitting unquoted single colons as list elements.
+
+<a name="0.15.0"></a>
+## [0.15.0](https://github.com/awslabs/aws-cdk/compare/v0.14.1...v0.15.0) (2018-11-06)
+
+### Bug Fixes
+
+* **aws-autoscaling:** allow minSize to be set to 0 ([#1015](https://github.com/awslabs/aws-cdk/issues/1015)) ([67f7fa1](https://github.com/awslabs/aws-cdk/commit/67f7fa1))
+* **aws-codebuild:** correctly pass the timeout property to CFN when creating a Project. ([#1071](https://github.com/awslabs/aws-cdk/issues/1071)) ([b1322bb](https://github.com/awslabs/aws-cdk/commit/b1322bb))
+* **aws-codebuild:** correctly set S3 path when using it as artifact. ([#1072](https://github.com/awslabs/aws-cdk/issues/1072)) ([f32cba9](https://github.com/awslabs/aws-cdk/commit/f32cba9))
+* **aws-kms:** add output value when exporting an encryption key ([#1036](https://github.com/awslabs/aws-cdk/issues/1036)) ([cb490be](https://github.com/awslabs/aws-cdk/commit/cb490be))
+* Switch from `js-yaml` to `yaml` ([#1092](https://github.com/awslabs/aws-cdk/issues/1092)) ([0b132b5](https://github.com/awslabs/aws-cdk/commit/0b132b5))
+
+
+### Features
+
+* don't upload the same asset multiple times ([#1011](https://github.com/awslabs/aws-cdk/issues/1011)) ([35937b6](https://github.com/awslabs/aws-cdk/commit/35937b6)), closes [#989](https://github.com/awslabs/aws-cdk/issues/989)
+* **app-delivery:** CI/CD for CDK Stacks ([#1022](https://github.com/awslabs/aws-cdk/issues/1022)) ([f2fe4e9](https://github.com/awslabs/aws-cdk/commit/f2fe4e9))
+* add a new construct library for ECS ([#1058](https://github.com/awslabs/aws-cdk/issues/1058)) ([ae03ddb](https://github.com/awslabs/aws-cdk/commit/ae03ddb))
+* **applets:** integrate into toolkit ([#1039](https://github.com/awslabs/aws-cdk/issues/1039)) ([fdabe95](https://github.com/awslabs/aws-cdk/commit/fdabe95)), closes [#849](https://github.com/awslabs/aws-cdk/issues/849) [#342](https://github.com/awslabs/aws-cdk/issues/342) [#291](https://github.com/awslabs/aws-cdk/issues/291)
+* **aws-codecommit:** use CloudWatch Events instead of polling by default in the CodePipeline Action. ([#1026](https://github.com/awslabs/aws-cdk/issues/1026)) ([d09d30c](https://github.com/awslabs/aws-cdk/commit/d09d30c))
+* **aws-dynamodb:** allow specifying partition/sort keys in props ([#1054](https://github.com/awslabs/aws-cdk/issues/1054)) ([ec87331](https://github.com/awslabs/aws-cdk/commit/ec87331)), closes [#1051](https://github.com/awslabs/aws-cdk/issues/1051)
+* **aws-ec2:** AmazonLinuxImage supports AL2 ([#1081](https://github.com/awslabs/aws-cdk/issues/1081)) ([97b57a5](https://github.com/awslabs/aws-cdk/commit/97b57a5)), closes [#1062](https://github.com/awslabs/aws-cdk/issues/1062)
+* **aws-lambda:** high level API for event sources ([#1063](https://github.com/awslabs/aws-cdk/issues/1063)) ([1be3442](https://github.com/awslabs/aws-cdk/commit/1be3442))
+* **aws-sqs:** improvements to IAM grants API ([#1052](https://github.com/awslabs/aws-cdk/issues/1052)) ([6f2475e](https://github.com/awslabs/aws-cdk/commit/6f2475e))
+* **codepipeline/cfn:** Use fewer statements for pipeline permissions ([#1009](https://github.com/awslabs/aws-cdk/issues/1009)) ([8f4c2ab](https://github.com/awslabs/aws-cdk/commit/8f4c2ab))
+* **pkglint:** Make sure .snk files are ignored ([#1049](https://github.com/awslabs/aws-cdk/issues/1049)) ([53c8d76](https://github.com/awslabs/aws-cdk/commit/53c8d76)), closes [#643](https://github.com/awslabs/aws-cdk/issues/643)
+* **toolkit:** deployment ui improvements ([#1067](https://github.com/awslabs/aws-cdk/issues/1067)) ([c832eaf](https://github.com/awslabs/aws-cdk/commit/c832eaf))
+* Update to CloudFormation resource specification v2.11.0
+
+
+### BREAKING CHANGES
+
+* The ec2.Connections object has been changed to be able to manage multiple
+  security groups. The relevant property has been changed from `securityGroup`
+  to `securityGroups` (an array of security group objects).
+* **aws-codecommit:** this modifies the default behavior of the CodeCommit
+  Action.  It also changes the internal API contract between the
+  aws-codepipeline-api module and the CodePipeline Actions in the service
+  packages.
+* **applets:** The applet schema has changed to allow Multiple applets can be
+  define in one file by structuring the files like this:
+* **applets:** The applet schema has changed to allow definition of multiple
+  applets in the same file.
+
+The schema now looks like this:
+
+    applets:
+      MyApplet:
+        type: ./my-applet-file
+        properties:
+          property1: value
+          ...
+By starting an applet specifier with npm://, applet modules can directly be
+referenced in NPM. You can include a version specifier (@1.2.3) to reference
+specific versions.
+* **aws-sqs:** `queue.grantReceiveMessages` has been removed. It is unlikely
+  that this would be sufficient to interact with a queue. Alternatively you can
+  use `queue.grantConsumeMessages` or `queue.grant('sqs:ReceiveMessage')` if
+  there's a need to only grant this action.
+
+<a name="0.14.1"></a>
+## [0.14.1](https://github.com/awslabs/aws-cdk/compare/v0.14.0...v0.14.1) (2018-10-26)
+
+### Bug Fixes
+
+* **aws-cdk:** fix bug in SSM Parameter Provider ([#1023](https://github.com/awslabs/aws-cdk/issues/1023)) ([6e6aa1d](https://github.com/awslabs/aws-cdk/commit/6e6aa1d))
+
+
+<a name="0.14.0"></a>
+## [0.14.0](https://github.com/awslabs/aws-cdk/compare/v0.13.0...v0.14.0) (2018-10-26)
+
+__IMPORTANT NOTE__: when upgrading to this version of the CDK framework, you must also upgrade
+your installation the CDK Toolkit to the matching version:
+
+```shell
+$ npm i -g aws-cdk
+$ cdk --version
+0.14.0 (build ...)
+```
+
+### Bug Fixes
+
+* remove CloudFormation property renames ([#973](https://github.com/awslabs/aws-cdk/issues/973)) ([3f86603](https://github.com/awslabs/aws-cdk/commit/3f86603)), closes [#852](https://github.com/awslabs/aws-cdk/issues/852)
+* **aws-ec2:** fix retention of all egress traffic rule ([#998](https://github.com/awslabs/aws-cdk/issues/998)) ([b9d5b43](https://github.com/awslabs/aws-cdk/commit/b9d5b43)), closes [#987](https://github.com/awslabs/aws-cdk/issues/987)
+* **aws-s3-deployment:** avoid deletion during update using physical ids ([#1006](https://github.com/awslabs/aws-cdk/issues/1006)) ([bca99c6](https://github.com/awslabs/aws-cdk/commit/bca99c6)), closes [#981](https://github.com/awslabs/aws-cdk/issues/981) [#981](https://github.com/awslabs/aws-cdk/issues/981)
+* **cloudformation-diff:** ignore changes to DependsOn ([#1005](https://github.com/awslabs/aws-cdk/issues/1005)) ([3605f9c](https://github.com/awslabs/aws-cdk/commit/3605f9c)), closes [#274](https://github.com/awslabs/aws-cdk/issues/274)
+* **cloudformation-diff:** track replacements ([#1003](https://github.com/awslabs/aws-cdk/issues/1003)) ([a83ac5f](https://github.com/awslabs/aws-cdk/commit/a83ac5f)), closes [#1001](https://github.com/awslabs/aws-cdk/issues/1001)
+* **docs:** fix EC2 readme for "natgatway" configuration ([#994](https://github.com/awslabs/aws-cdk/issues/994)) ([0b1e7cc](https://github.com/awslabs/aws-cdk/commit/0b1e7cc))
+* **docs:** updates to contribution guide ([#997](https://github.com/awslabs/aws-cdk/issues/997)) ([b42e742](https://github.com/awslabs/aws-cdk/commit/b42e742))
+* **iam:** Merge multiple principals correctly ([#983](https://github.com/awslabs/aws-cdk/issues/983)) ([3fc5c8c](https://github.com/awslabs/aws-cdk/commit/3fc5c8c)), closes [#924](https://github.com/awslabs/aws-cdk/issues/924) [#916](https://github.com/awslabs/aws-cdk/issues/916) [#958](https://github.com/awslabs/aws-cdk/issues/958)
+
+
+### Features
+
+* add construct library for Application AutoScaling ([#933](https://github.com/awslabs/aws-cdk/issues/933)) ([7861c6f](https://github.com/awslabs/aws-cdk/commit/7861c6f)), closes [#856](https://github.com/awslabs/aws-cdk/issues/856) [#861](https://github.com/awslabs/aws-cdk/issues/861) [#640](https://github.com/awslabs/aws-cdk/issues/640) [#644](https://github.com/awslabs/aws-cdk/issues/644)
+* add HostedZone context provider ([#823](https://github.com/awslabs/aws-cdk/issues/823)) ([1626c37](https://github.com/awslabs/aws-cdk/commit/1626c37))
+* **assert:** haveResource lists failing properties ([#1016](https://github.com/awslabs/aws-cdk/issues/1016)) ([7f6f3fd](https://github.com/awslabs/aws-cdk/commit/7f6f3fd))
+* **aws-cdk:** add CDK app version negotiation ([#988](https://github.com/awslabs/aws-cdk/issues/988)) ([db4e718](https://github.com/awslabs/aws-cdk/commit/db4e718)), closes [#891](https://github.com/awslabs/aws-cdk/issues/891)
+* **aws-codebuild:** Introduce a CodePipeline test Action. ([#873](https://github.com/awslabs/aws-cdk/issues/873)) ([770f9aa](https://github.com/awslabs/aws-cdk/commit/770f9aa))
+* **aws-sqs:** Add grantXxx() methods ([#1004](https://github.com/awslabs/aws-cdk/issues/1004)) ([8c90350](https://github.com/awslabs/aws-cdk/commit/8c90350))
+* **core:** Pre-concatenate Fn::Join ([#967](https://github.com/awslabs/aws-cdk/issues/967)) ([33c32a8](https://github.com/awslabs/aws-cdk/commit/33c32a8)), closes [#916](https://github.com/awslabs/aws-cdk/issues/916) [#958](https://github.com/awslabs/aws-cdk/issues/958)
+
+
+### BREAKING CHANGES
+
+* DynamoDB AutoScaling: Instead of `addReadAutoScaling()`, call `autoScaleReadCapacity()`, and similar for write scaling.
+* CloudFormation resource usage: If you use L1s, you may need to change some `XxxName` properties back into `Name`. These will match the CloudFormation property names.
+* You must use the matching `aws-cdk` toolkit when upgrading to this version, or context providers will cease to work. All existing cached context values in `cdk.json` will be invalidated and refreshed.
+
+<a name="0.13.0"></a>
+## [0.13.0](https://github.com/awslabs/aws-cdk/compare/v0.12.0...v0.13.0) (2018-10-19)
+
+### Highlights
+
+ - __A new construct library for AWS Step Functions__
+   ([docs](https://github.com/awslabs/aws-cdk/blob/master/packages/%40aws-cdk/aws-stepfunctions/README.md)).
+   The library provides rich APIs for modeling state machines by exposing a
+   programmatic interface for [Amazon State
+   Language](https://docs.aws.amazon.com/step-functions/latest/dg/concepts-amazon-states-language.html).
+ - __A new construct library for Amazon S3 bucket deployments__
+   ([docs](https://github.com/awslabs/aws-cdk/blob/master/packages/%40aws-cdk/aws-s3-deployment/README.md)).
+   You can use now automatically populate an S3 Bucket from a .zip file or a
+   local directory. This is a building block for end-to-end support for static
+   websites in the AWS CDK.
+
+### Bug Fixes
+
+* **aws-apigateway:** make LambdaRestApi proxy by default ([#963](https://github.com/awslabs/aws-cdk/issues/963)) ([a5f5e2c](https://github.com/awslabs/aws-cdk/commit/a5f5e2c)), closes [#959](https://github.com/awslabs/aws-cdk/issues/959)
+* **aws-cdk:** Allow use of assumed roles behind a proxy ([#898](https://github.com/awslabs/aws-cdk/issues/898)) ([f2b1048](https://github.com/awslabs/aws-cdk/commit/f2b1048))
+* **aws-cdk:** Auto-delete stacks that failed creating before new attempt ([#917](https://github.com/awslabs/aws-cdk/issues/917)) ([2af8309](https://github.com/awslabs/aws-cdk/commit/2af8309))
+* **aws-cloudfront:** expose distributionId ([#938](https://github.com/awslabs/aws-cdk/issues/938)) ([f58d98c](https://github.com/awslabs/aws-cdk/commit/f58d98c))
+* **aws-dynamodb:** don't emit empty array properties ([#909](https://github.com/awslabs/aws-cdk/issues/909)) ([841975a](https://github.com/awslabs/aws-cdk/commit/841975a))
+* **docs:** use ..code to display file structure in "writing constructs" ([#935](https://github.com/awslabs/aws-cdk/issues/935)) ([b743362](https://github.com/awslabs/aws-cdk/commit/b743362))
+
+### Features
+
+* **assets:** isZipArchive indicates if this is a zip asset ([#944](https://github.com/awslabs/aws-cdk/issues/944)) ([65190f9](https://github.com/awslabs/aws-cdk/commit/65190f9))
+* **aws-cdk:** deploy supports CloudFormation Role ([#940](https://github.com/awslabs/aws-cdk/issues/940)) ([393be6f](https://github.com/awslabs/aws-cdk/commit/393be6f)), closes [#735](https://github.com/awslabs/aws-cdk/issues/735)
+* **aws-cloudformation:** allow specifying custom resource type ([#943](https://github.com/awslabs/aws-cdk/issues/943)) ([9de3a84](https://github.com/awslabs/aws-cdk/commit/9de3a84))
+* **aws-cloudformation:** correctly handle the templateConfiguration property in the CreateUpdateStack Pipeline Action. ([#923](https://github.com/awslabs/aws-cdk/issues/923)) ([d251a46](https://github.com/awslabs/aws-cdk/commit/d251a46))
+* **aws-cloudfront:** add support for "webAclId" ([#969](https://github.com/awslabs/aws-cdk/issues/969)) ([3ec9d76](https://github.com/awslabs/aws-cdk/commit/3ec9d76))
+* **aws-codedeploy:** add auto rollback configuration to server Deployment Group. ([#925](https://github.com/awslabs/aws-cdk/issues/925)) ([7ee91cf](https://github.com/awslabs/aws-cdk/commit/7ee91cf))
+* **aws-codedeploy:** add instance tag filter support for server Deployment Groups. ([#824](https://github.com/awslabs/aws-cdk/issues/824)) ([e6e8c51](https://github.com/awslabs/aws-cdk/commit/e6e8c51))
+* **aws-codedeploy:** add support for setting CloudWatch alarms on a server Deployment Group. ([#926](https://github.com/awslabs/aws-cdk/issues/926)) ([27b26b1](https://github.com/awslabs/aws-cdk/commit/27b26b1))
+* add support for Step Functions ([#827](https://github.com/awslabs/aws-cdk/issues/827)) ([81b533c](https://github.com/awslabs/aws-cdk/commit/81b533c))
+* **aws-lambda:** add grantInvoke() method ([#962](https://github.com/awslabs/aws-cdk/issues/962)) ([1ee8135](https://github.com/awslabs/aws-cdk/commit/1ee8135)), closes [#961](https://github.com/awslabs/aws-cdk/issues/961)
+* **aws-lambda:** improvements to the code and runtime APIs ([#945](https://github.com/awslabs/aws-cdk/issues/945)) ([36f29b6](https://github.com/awslabs/aws-cdk/commit/36f29b6)), closes [#902](https://github.com/awslabs/aws-cdk/issues/902) [#188](https://github.com/awslabs/aws-cdk/issues/188) [#947](https://github.com/awslabs/aws-cdk/issues/947) [#947](https://github.com/awslabs/aws-cdk/issues/947) [#664](https://github.com/awslabs/aws-cdk/issues/664)
+* **aws-logs:** extractMetric() returns Metric object ([#939](https://github.com/awslabs/aws-cdk/issues/939)) ([5558fff](https://github.com/awslabs/aws-cdk/commit/5558fff)), closes [#850](https://github.com/awslabs/aws-cdk/issues/850)
+* **aws-s3:** initial support for website hosting ([#946](https://github.com/awslabs/aws-cdk/issues/946)) ([2d3661c](https://github.com/awslabs/aws-cdk/commit/2d3661c))
+* **aws-s3-deployment:** bucket deployments ([#971](https://github.com/awslabs/aws-cdk/issues/971)) ([84d6876](https://github.com/awslabs/aws-cdk/commit/84d6876)), closes [#952](https://github.com/awslabs/aws-cdk/issues/952) [#953](https://github.com/awslabs/aws-cdk/issues/953) [#954](https://github.com/awslabs/aws-cdk/issues/954)
+* **docs:** added link to CloudFormation concepts ([#934](https://github.com/awslabs/aws-cdk/issues/934)) ([666bbba](https://github.com/awslabs/aws-cdk/commit/666bbba))
+
+### BREAKING CHANGES
+
+* **aws-apigateway:** specifying a path no longer works. If you used to
+provide a '/', remove it. Otherwise, you will have to supply `proxy: false`
+and construct more complex resource paths yourself.
+* **aws-lambda:** The construct `lambda.InlineJavaScriptLambda` is no longer supported. Use `lambda.Code.inline` instead; `lambda.Runtime.NodeJS43Edge` runtime is removed. CloudFront docs [stipulate](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html#lambda-requirements-lambda-function-configuration) that you should use node6.10 or node8.10. It is always possible to use any value by instantiating a `lambda.Runtime` object.
+
+
 <a name="0.12.0"></a>
 ## [0.12.0](https://github.com/awslabs/aws-cdk/compare/v0.11.0...v0.12.0) (2018-10-12)
 

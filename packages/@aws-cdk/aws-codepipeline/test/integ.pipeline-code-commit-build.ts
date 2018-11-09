@@ -18,6 +18,7 @@ new codecommit.PipelineSourceAction(stack, 'source', {
   stage: sourceStage,
   outputArtifactName: 'SourceArtifact',
   repository,
+  pollForSourceChanges: true,
 });
 
 const project = new codebuild.Project(stack, 'MyBuildProject', {
@@ -26,5 +27,6 @@ const project = new codebuild.Project(stack, 'MyBuildProject', {
 
 const buildStage = new codepipeline.Stage(pipeline, 'build', { pipeline });
 project.addBuildToPipeline(buildStage, 'build');
+project.addTestToPipeline(buildStage, 'test');
 
 app.run();

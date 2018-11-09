@@ -20,18 +20,18 @@ export = {
           Statement: [
           {
             Action: [
-              "kms:CancelKeyDeletion",
-              "kms:Create*",
-              "kms:Delete*",
-              "kms:Describe*",
-              "kms:Disable*",
-              "kms:Enable*",
-              "kms:Get*",
-              "kms:List*",
-              "kms:Put*",
-              "kms:Revoke*",
-              "kms:ScheduleKeyDeletion",
-              "kms:Update*",
+            "kms:Create*",
+            "kms:Describe*",
+            "kms:Enable*",
+            "kms:List*",
+            "kms:Put*",
+            "kms:Update*",
+            "kms:Revoke*",
+            "kms:Disable*",
+            "kms:Get*",
+            "kms:Delete*",
+            "kms:ScheduleKeyDeletion",
+            "kms:CancelKeyDeletion"
             ],
             Effect: "Allow",
             Principal: {
@@ -83,18 +83,18 @@ export = {
           Statement: [
             {
             Action: [
-              "kms:CancelKeyDeletion",
               "kms:Create*",
-              "kms:Delete*",
               "kms:Describe*",
-              "kms:Disable*",
               "kms:Enable*",
-              "kms:Get*",
               "kms:List*",
               "kms:Put*",
-              "kms:Revoke*",
-              "kms:ScheduleKeyDeletion",
               "kms:Update*",
+              "kms:Revoke*",
+              "kms:Disable*",
+              "kms:Get*",
+              "kms:Delete*",
+              "kms:ScheduleKeyDeletion",
+              "kms:CancelKeyDeletion"
             ],
             Effect: "Allow",
             Principal: {
@@ -160,18 +160,18 @@ export = {
           Statement: [
             {
             Action: [
-              "kms:CancelKeyDeletion",
               "kms:Create*",
-              "kms:Delete*",
               "kms:Describe*",
-              "kms:Disable*",
               "kms:Enable*",
-              "kms:Get*",
               "kms:List*",
               "kms:Put*",
-              "kms:Revoke*",
-              "kms:ScheduleKeyDeletion",
               "kms:Update*",
+              "kms:Revoke*",
+              "kms:Disable*",
+              "kms:Get*",
+              "kms:Delete*",
+              "kms:ScheduleKeyDeletion",
+              "kms:CancelKeyDeletion"
             ],
             Effect: "Allow",
             Principal: {
@@ -237,18 +237,18 @@ export = {
           Statement: [
           {
             Action: [
-              "kms:CancelKeyDeletion",
-              "kms:Create*",
-              "kms:Delete*",
-              "kms:Describe*",
-              "kms:Disable*",
-              "kms:Enable*",
-              "kms:Get*",
-              "kms:List*",
-              "kms:Put*",
-              "kms:Revoke*",
-              "kms:ScheduleKeyDeletion",
-              "kms:Update*",
+            "kms:Create*",
+            "kms:Describe*",
+            "kms:Enable*",
+            "kms:List*",
+            "kms:Put*",
+            "kms:Update*",
+            "kms:Revoke*",
+            "kms:Disable*",
+            "kms:Get*",
+            "kms:Delete*",
+            "kms:ScheduleKeyDeletion",
+            "kms:CancelKeyDeletion"
             ],
             Effect: "Allow",
             Principal: {
@@ -304,28 +304,34 @@ export = {
 
     expect(stack1).toMatch({
       Resources: {
-      MyKey6AB29FA6: {
-        Type: "AWS::KMS::Key",
-        Properties: {
-        KeyPolicy: {
-          Statement: [
-          {
-            Effect: "Allow",
-            Resource: "*"
-          }
-          ],
-          Version: "2012-10-17"
+        MyKey6AB29FA6: {
+          Type: "AWS::KMS::Key",
+          Properties: {
+            KeyPolicy: {
+              Statement: [
+                {
+                  Effect: "Allow",
+                  Resource: "*"
+                }
+              ],
+              Version: "2012-10-17"
+            }
+          },
+          DeletionPolicy: "Retain"
         }
-        },
-        DeletionPolicy: "Retain"
-      }
       },
       Outputs: {
-      MyKeyKeyArn317F1332: {
-        Export: {
-        Name: "MyKeyKeyArn317F1332"
+        MyKeyKeyArn317F1332: {
+          Value: {
+            "Fn::GetAtt": [
+              "MyKey6AB29FA6",
+              "Arn"
+            ]
+          },
+          Export: {
+            Name: "MyKeyKeyArn317F1332"
+          }
         }
-      }
       }
     });
 

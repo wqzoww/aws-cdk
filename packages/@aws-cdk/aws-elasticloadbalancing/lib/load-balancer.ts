@@ -207,8 +207,8 @@ export class LoadBalancer extends cdk.Construct implements IConnectable, codedep
   constructor(parent: cdk.Construct, name: string, props: LoadBalancerProps) {
     super(parent, name);
 
-    this.securityGroup = new SecurityGroup(this, 'SecurityGroup', { vpc: props.vpc });
-    this.connections = new Connections({ securityGroup: this.securityGroup });
+    this.securityGroup = new SecurityGroup(this, 'SecurityGroup', { vpc: props.vpc, allowAllOutbound: false });
+    this.connections = new Connections({ securityGroups: [this.securityGroup] });
 
     // Depending on whether the ELB has public or internal IPs, pick the right backend subnets
     const subnets: VpcSubnetRef[] = props.internetFacing ? props.vpc.publicSubnets : props.vpc.privateSubnets;
@@ -342,7 +342,7 @@ export class ListenerPort implements IConnectable {
   public readonly connections: Connections;
 
   constructor(securityGroup: SecurityGroupRef, defaultPortRange: IPortRange) {
-    this.connections = new Connections({ securityGroup, defaultPortRange });
+    this.connections = new Connections({ securityGroups: [securityGroup] , defaultPortRange });
   }
 }
 
