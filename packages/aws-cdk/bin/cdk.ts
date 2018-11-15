@@ -10,7 +10,7 @@ import yargs = require('yargs');
 import cdkUtil = require('../lib/util');
 
 import { bootstrapEnvironment, deployStack, destroyStack, loadToolkitInfo, Mode, SDK } from '../lib';
-import contextplugins = require('../lib/contextplugins');
+import contextproviders = require('../lib/context-providers/index');
 import { printStackDiff } from '../lib/diff';
 import { execProgram } from '../lib/exec';
 import { availableInitLanguages, cliInit, printAvailableTemplates } from '../lib/init';
@@ -19,7 +19,7 @@ import { data, debug, error, highlight, print, setVerbose, success, warning } fr
 import { PluginHost } from '../lib/plugin';
 import { parseRenames } from '../lib/renames';
 import { deserializeStructure, serializeStructure } from '../lib/serialize';
-import { DEFAULTS, PER_USER_DEFAULTS, Settings } from '../lib/settings';
+import { DEFAULTS, loadProjectConfig, loadUserConfig, PER_USER_DEFAULTS, saveProjectConfig, Settings } from '../lib/settings';
 import { VERSION } from '../lib/version';
 
 // tslint:disable-next-line:no-var-requires
@@ -50,7 +50,8 @@ async function parseCommandLineArguments() {
     .option('profile', { type: 'string', desc: 'Use the indicated AWS profile as the default environment' })
     .option('proxy', { type: 'string', desc: 'Use the indicated proxy. Will read from HTTPS_PROXY environment variable if not specified.' })
     .option('ec2creds', { type: 'boolean', alias: 'i', default: undefined, desc: 'Force trying to fetch EC2 instance credentials. Default: guess EC2 instance status.' })
-    .option('version-reporting', { type: 'boolean', desc: 'Disable insersion of the CDKMetadata resource in synthesized templates', default: undefined })
+    .option('version-reporting', { type: 'boolean', desc: 'Include the "AWS::CDK::Metadata" resource in synthesized templates (enabled by default)', default: undefined })
+    .option('path-metadata', { type: 'boolean', desc: 'Include "aws:cdk:path" CloudFormation metadata for each resource (enabled by default)', default: true })
     .option('role-arn', { type: 'string', alias: 'r', desc: 'ARN of Role to use when invoking CloudFormation', default: undefined })
     .command([ 'list', 'ls' ], 'Lists all stacks in the app', yargs => yargs
       .option('long', { type: 'boolean', default: false, alias: 'l', desc: 'display environment information for each stack' }))
@@ -85,6 +86,13 @@ async function parseCommandLineArguments() {
  * Decorates commands discovered by ``yargs.commandDir`` in order to apply global
  * options as appropriate.
  *
+ * Command handlers are supposed to be (args) => void, but ours are actually
+ * (args) => Promise<number>, so we deal with the asyncness by copying the actual
+ * handler object to `args.commandHandler` which will be 'await'ed later on
+ * (instead of awaiting 'main').
+ *
+ * Also adds exception handling so individual command handlers don't all have to do it.
+ *
  * @param commandObject is the command to be decorated.
  * @returns a decorated ``CommandModule``.
  */
@@ -95,7 +103,22 @@ function decorateCommand(commandObject: yargs.CommandModule): yargs.CommandModul
       if (args.verbose) {
         setVerbose();
       }
-      return args.result = commandObject.handler(args);
+      args.commandHandler = wrapExceptionHandler(args.verbose, commandObject.handler as any)(args);
+    }
+  };
+}
+
+function wrapExceptionHandler(verbose: boolean, fn: (args: any) => Promise<number>) {
+  return async (a: any) => {
+    try {
+      return await fn(a);
+    } catch (e) {
+      if (verbose) {
+        error(e);
+      } else {
+        error(e.message);
+      }
+      return 1;
     }
   };
 }
@@ -115,15 +138,9 @@ async function initCommandLine() {
     ec2creds: argv.ec2creds,
   });
 
-  const availableContextProviders: contextplugins.ProviderMap = {
-    'availability-zones': new contextplugins.AZContextProviderPlugin(aws),
-    'ssm': new contextplugins.SSMContextProviderPlugin(aws),
-    'hosted-zone': new contextplugins.HostedZoneContextProviderPlugin(aws),
-  };
-
-  const defaultConfig = new Settings({ versionReporting: true });
-  const userConfig = await new Settings().load(PER_USER_DEFAULTS);
-  const projectConfig = await new Settings().load(DEFAULTS);
+  const defaultConfig = new Settings({ versionReporting: true, pathMetadata: true });
+  const userConfig = await loadUserConfig();
+  const projectConfig = await loadProjectConfig();
   const commandLineArguments = argumentsToSettings();
   const renames = parseRenames(argv.rename);
 
@@ -162,7 +179,7 @@ async function initCommandLine() {
 
   const cmd = argv._[0];
 
-  const returnValue = await (argv.result || main(cmd, argv));
+  const returnValue = await (argv.commandHandler || main(cmd, argv));
   if (typeof returnValue === 'object') {
     return toJsonOrYaml(returnValue);
   } else if (typeof returnValue === 'string') {
@@ -281,8 +298,8 @@ async function initCommandLine() {
       success(' ⏳  Bootstrapping environment %s...', colors.blue(environment.name));
       try {
         const result = await bootstrapEnvironment(environment, aws, toolkitStackName, roleArn);
-        const message = result.noOp ? ' ✅  Environment %s was already fully bootstrapped!'
-                      : ' ✅  Successfully bootstraped environment %s!';
+        const message = result.noOp ? ' ✅  Environment %s bootstrapped (no changes).'
+                      : ' ✅  Environment %s bootstrapped.';
         success(message, colors.blue(environment.name));
       } catch (e) {
         error(' ❌  Environment %s failed bootstrapping: %s', colors.blue(environment.name), e);
@@ -384,10 +401,10 @@ async function initCommandLine() {
       if (!cdkUtil.isEmpty(allMissing)) {
         debug(`Some context information is missing. Fetching...`);
 
-        await contextplugins.provideContextValues(allMissing, projectConfig, availableContextProviders);
+        await contextproviders.provideContextValues(allMissing, projectConfig, aws);
 
         // Cache the new context to disk
-        await projectConfig.save(DEFAULTS);
+        await saveProjectConfig(projectConfig);
         config = completeConfig();
 
         continue;
@@ -629,7 +646,11 @@ async function initCommandLine() {
 
   function logDefaults() {
     if (!userConfig.empty()) {
-      debug('Defaults loaded from ', PER_USER_DEFAULTS, ':', JSON.stringify(userConfig.settings, undefined, 2));
+      debug(PER_USER_DEFAULTS + ':', JSON.stringify(userConfig.settings, undefined, 2));
+    }
+
+    if (!projectConfig.empty()) {
+      debug(DEFAULTS + ':', JSON.stringify(projectConfig.settings, undefined, 2));
     }
 
     const combined = userConfig.merge(projectConfig);
@@ -664,6 +685,7 @@ async function initCommandLine() {
       plugin: argv.plugin,
       toolkitStackName: argv.toolkitStackName,
       versionReporting: argv.versionReporting,
+      pathMetadata: argv.pathMetadata,
     });
   }
 
