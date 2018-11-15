@@ -71,7 +71,7 @@ export class NetworkTargetGroup extends BaseTargetGroup {
    * Don't call this directly. It will be called by listeners.
    */
   public registerListener(listener: INetworkListener) {
-    this.dependableListeners.push(listener);
+    this.loadBalancerAssociationDependencies.push(listener);
   }
 }
 
@@ -80,13 +80,23 @@ export class NetworkTargetGroup extends BaseTargetGroup {
  */
 // tslint:disable-next-line:no-empty-interface
 export interface INetworkTargetGroup extends ITargetGroup {
+  /**
+   * Register a listener that is load balancing to this target group.
+   *
+   * Don't call this directly. It will be called by listeners.
+   */
+  registerListener(listener: INetworkListener): void;
 }
 
 /**
  * An imported network target group
  */
 class ImportedNetworkTargetGroup extends BaseImportedTargetGroup implements INetworkTargetGroup {
-  public listenerDependency(): cdk.IDependable {
+  public registerListener(_listener: INetworkListener) {
+    // Nothing to do, we know nothing of our members
+  }
+
+  public loadBalancerDependency(): cdk.IDependable {
     return new LazyDependable([]);
   }
 }
