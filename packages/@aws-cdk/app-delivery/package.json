@@ -19,7 +19,8 @@
         "packageId": "Amazon.CDK.AppDelivery",
         "signAssembly": true,
         "assemblyOriginatorKeyFile": "../../key.snk"
-      }
+      },
+      "python": {}
     },
     "outdir": "dist"
   },

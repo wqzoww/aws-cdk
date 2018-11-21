@@ -164,6 +164,16 @@ export class JSIIJavaPackageIsRequired extends ValidationRule {
   }
 }
 
+/**
+ * JSII Python package is required.
+ */
+export class JSIIPythonPackageIsRequired extends ValidationRule {
+  public validate(pkg: PackageJson): void {
+    if (!isJSII(pkg)) { return; }
+    expectJSON(pkg, 'jsii.targets.python', { });
+  }
+}
+
 export class JSIISphinxTarget extends ValidationRule {
   public validate(pkg: PackageJson): void {
     if (!isJSII(pkg)) { return; }

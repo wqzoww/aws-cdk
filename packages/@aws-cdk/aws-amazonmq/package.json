@@ -20,7 +20,8 @@
           "artifactId": "amazonmq"
         }
       },
-      "sphinx": {}
+      "sphinx": {},
+      "python": {}
     }
   },
   "repository": {

@@ -20,7 +20,8 @@
           "artifactId": "iot1click"
         }
       },
-      "sphinx": {}
+      "sphinx": {},
+      "python": {}
     }
   },
   "repository": {

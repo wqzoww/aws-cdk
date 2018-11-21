@@ -20,7 +20,8 @@
           "artifactId": "appstream"
         }
       },
-      "sphinx": {}
+      "sphinx": {},
+      "python": {}
     }
   },
   "repository": {
