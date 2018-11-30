@@ -77,8 +77,8 @@ export class Output extends StackElement {
    * @param parent The parent construct.
    * @param props Output properties.
    */
-  constructor(parent: Construct, name: string, props: OutputProps = {}) {
-    super(parent, name);
+  constructor(name: string, props: OutputProps = {}) {
+    super(name);
 
     this.description = props.description;
     this.value = props.value;
@@ -196,19 +196,23 @@ export class StringListOutput extends Construct {
    */
   private readonly output: Output;
 
-  constructor(parent: Construct, name: string, props: StringListOutputProps) {
-    super(parent, name);
+  constructor(name: string, props: StringListOutputProps) {
+    super(name);
+    
+    this.push();
 
     this.separator = props.separator || ',';
     this.length = props.values.length;
 
-    this.output = new Output(this, 'Resource', {
+    this.output = new Output('Resource', {
       description: props.description,
       condition: props.condition,
       disableExport: props.disableExport,
       export: props.export,
       value: new FnJoin(this.separator, props.values)
     });
+    
+    this.pop();
   }
 
   /**

@@ -4,15 +4,17 @@ import { ITaggable, TagManager } from '../../lib/core/tag-manager';
 
 class ChildTagger extends Construct implements ITaggable {
   public readonly tags: TagManager;
-  constructor(parent: Construct, name: string) {
-    super(parent, name);
-    this.tags = new TagManager(parent);
+  constructor(name: string) {
+    super(name);
+    this.push();
+    this.tags = new TagManager();
+    this.pop();
   }
 }
 
 class Child extends Construct {
-  constructor(parent: Construct, name: string) {
-    super(parent, name);
+  constructor(name: string) {
+    super(name);
   }
 }
 

@@ -2,11 +2,69 @@ import cxapi = require('@aws-cdk/cx-api');
 import { makeUniqueId } from '../util/uniqueid';
 export const PATH_SEP = '/';
 
+export class ConstructTree {
+  private stack = new Array<Construct>();
+  private next?: Construct;
+
+  /**
+   * @returns the last pushed construct
+   */
+  public get parentOrUndefined(): Construct | undefined {
+    return this.stack[this.stack.length - 1];
+  }
+  
+  /**
+   * @returns the last construct pushed to the stack.
+   */
+  public get parent(): Construct {
+    if (!this.parentOrUndefined) {
+      throw new Error(`Must be defined within a construct`);
+    }
+    return this.parentOrUndefined;
+  }
+  
+  /**
+   * Indicates that the next construct to be pushed to the tree should be "next".
+   */
+  public expect(next: Construct) {
+    this.next = next;
+  }
+  
+  /**
+   * Push a construct to the stack. All constructs created afterwards will be children
+   * of this construct.
+   */
+  public push(construct: Construct) {
+    if (!this.next) {
+      throw new Error('"expect" must be called before "push"');
+    }
+    if (this.next !== construct) {
+      throw new Error(`Did you forget to push '${this.next.path}'?`);
+    }
+    this.stack.push(construct);
+  }
+  
+  /**
+   * Pops a construct from the stack.
+   */
+  public pop(construct: Construct): void {
+    const top = this.stack.pop();
+    if (top && top !== construct) {
+      throw new Error(`Unexpected construct at the top of the stack. Expecting '${construct.path}', got '${top.path}`);
+    }
+  }
+}
+
 /**
  * Represents the building block of the construct graph.
  * When a construct is created, it is always added as a child
  */
 export class Construct {
+  /**
+   * The global construct tree.
+   */
+  public static readonly tree = new ConstructTree();
+
   /**
    * Returns the parent of this node or undefined if this is a root node.
    */
@@ -47,22 +105,19 @@ export class Construct {
   /**
    * Creates a new construct node.
    *
-   * @param parent The parent construct
    * @param props  Properties for this construct
    */
-  constructor(parent: Construct, id: string) {
+  constructor(id: string) {
     this.id = id;
-    this.parent = parent;
-
-    // We say that parent is required, but some root constructs bypass the type checks and
-    // actually pass in 'undefined'.
-    if (parent != null) {
+    this.parent = Construct.tree.parentOrUndefined;
+    
+    if (this.parent != null) {
       if (id === '') {
         throw new Error('Only root constructs may have an empty name');
       }
 
       // Has side effect so must be very last thing in constructor
-      parent.addChild(this, this.id);
+      this.parent.addChild(this, this.id);
     } else {
       // This is a root construct.
       this.id = id;
@@ -76,6 +131,25 @@ export class Construct {
     const components = this.rootPath().map(c => c.id);
     this.path = components.join(PATH_SEP);
     this.uniqueId = components.length > 0 ? makeUniqueId(components) : '';
+    
+    // indicate that the next construct to be pushed must be me.
+    Construct.tree.expect(this);
+  }
+  
+  /**
+   * Push the current construct to the construct tree stack. This means
+   * that all constructs created until the next pop() will be children of
+   * this construct.
+   */
+  public push() {
+    Construct.tree.push(this);
+  }
+  
+  /**
+   * Pop the current construct from the construct tree stack.
+   */
+  public pop() {
+    Construct.tree.pop(this);
   }
 
   /**
@@ -396,7 +470,7 @@ export class Construct {
 export class Root extends Construct {
   constructor() {
     // Bypass type checks
-    super(undefined as any, '');
+    super('');
   }
 }
 
@@ -441,3 +515,4 @@ function createStackTrace(below: Function): string[] {
   }
   return object.stack.split('\n').slice(1).map(s => s.replace(/^\s*at\s+/, ''));
 }
+

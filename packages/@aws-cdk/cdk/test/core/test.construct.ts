@@ -16,7 +16,9 @@ export = {
 
   'constructs cannot be created with an empty name unless they are root'(test: Test) {
     const root = new Root();
-    test.throws(() => new Construct(root, ''));
+    Construct.tree.push(root);
+    test.throws(() => new Construct(''));
+    Construct.tree.pop(root);
     test.done();
   },
 
@@ -34,31 +36,33 @@ export = {
   },
 
   'construct id can use any character except the path separator'(test: Test) {
-    const root = new Root();
-    new Construct(root, 'valid');
-    new Construct(root, 'ValiD');
-    new Construct(root, 'Va123lid');
-    new Construct(root, 'v');
-    new Construct(root, '  invalid' );
-    new Construct(root, 'invalid   ' );
-    new Construct(root, '123invalid' );
-    new Construct(root, 'in valid' );
-    new Construct(root, 'in_Valid' );
-    new Construct(root, 'in-Valid' );
-    new Construct(root, 'in\\Valid' );
-    new Construct(root, 'in.Valid' );
+    new Construct('valid');
+    new Construct('ValiD');
+    new Construct('Va123lid');
+    new Construct('v');
+    new Construct('  invalid' );
+    new Construct('invalid   ' );
+    new Construct('123invalid' );
+    new Construct('in valid' );
+    new Construct('in_Valid' );
+    new Construct('in-Valid' );
+    new Construct('in\\Valid' );
+    new Construct('in.Valid' );
 
-    test.throws(() => new Construct(root, 'in/Valid' ), Error, 'backslashes are not allowed');
+    test.throws(() => new Construct('in/Valid' ), Error, 'backslashes are not allowed');
     test.done();
   },
 
   'construct.uniqueId returns a tree-unique alphanumeric id of this construct'(test: Test) {
-    const root = new Root();
+    const child1 = new Construct('This is the first child');
 
-    const child1 = new Construct(root, 'This is the first child');
-    const child2 = new Construct(child1, 'Second level');
-    const c1 = new Construct(child2, 'My construct');
-    const c2 = new Construct(child1, 'My construct');
+    child1.push();
+      const c2 = new Construct('My construct');
+      const child2 = new Construct('Second level');
+      child2.push();
+        const c1 = new Construct('My construct');
+      child2.pop();
+    child2.pop();
 
     test.deepEqual(c1.path, 'This is the first child/Second level/My construct');
     test.deepEqual(c2.path, 'This is the first child/My construct');
@@ -69,14 +73,18 @@ export = {
 
   'cannot calculate uniqueId if the construct path is ["Default"]'(test: Test) {
     const root = new Root();
-    test.throws(() => new Construct(root, 'Default'), /Unable to calculate a unique id for an empty set of components/);
+    root.push();
+      test.throws(() => new Construct('Default'), /Unable to calculate a unique id for an empty set of components/);
+    root.pop();
     test.done();
   },
 
   'construct.getChildren() returns an array of all children'(test: Test) {
     const root = new Root();
-    const child = new Construct(root, 'Child1');
-    new Construct(root, 'Child2');
+    root.push();  
+      const child = new Construct('Child1');
+      new Construct('Child2');
+    root.pop();
     test.equal(child.children.length, 0, 'no children');
     test.equal(root.children.length, 2, 'two children are expected');
     test.done();
@@ -84,7 +92,10 @@ export = {
 
   'construct.findChild(name) can be used to retrieve a child from a parent'(test: Test) {
     const root = new Root();
-    const child = new Construct(root, 'Contruct');
+    root.push();
+      const child = new Construct('Contruct');
+    root.pop();
+    
     test.strictEqual(root.tryFindChild(child.id), child, 'findChild(name) can be used to retrieve the child from a parent');
     test.ok(!root.tryFindChild('NotFound'), 'findChild(name) returns undefined if the child is not found');
     test.done();
@@ -92,7 +103,10 @@ export = {
 
   'construct.getChild(name) can be used to retrieve a child from a parent'(test: Test) {
     const root = new Root();
-    const child = new Construct(root, 'Contruct');
+    root.push();
+      const child = new Construct('Contruct');
+    root.pop();
+    
     test.strictEqual(root.findChild(child.id), child, 'getChild(name) can be used to retrieve the child from a parent');
     test.throws(() => {
       root.findChild('NotFound');
@@ -126,13 +140,17 @@ export = {
     const root = new Root();
     root.setContext('c1', 'root');
     root.setContext('c2', 'root');
+    
+    root.push();
 
-    const child1 = new Construct(root, 'child1');
+    const child1 = new Construct('child1');
     child1.setContext('c2', 'child1');
     child1.setContext('c3', 'child1');
-
-    const child2 = new Construct(root, 'child2');
-    const child3 = new Construct(child1, 'child1child1');
+    child1.push();
+      const child3 = new Construct('child1child1');
+    child1.pop();
+    
+    const child2 = new Construct('child2');
     child3.setContext('c1', 'child3');
     child3.setContext('c4', 'child3');
 
@@ -158,7 +176,9 @@ export = {
 
   'construct.setContext(key, value) can only be called before adding any children'(test: Test) {
     const root = new Root();
-    new Construct(root, 'child1');
+    root.push();
+      new Construct('child1');
+    root.pop();
     test.throws(() => root.setContext('k', 'v'));
     test.done();
   },
@@ -180,21 +200,26 @@ export = {
 
   'construct can not be created with the name of a sibling'(test: Test) {
     const root = new Root();
+    root.push();
 
     // WHEN
-    new Construct(root, 'SameName');
+    new Construct('SameName');
 
     // THEN: They have different paths
     test.throws(() => {
-      new Construct(root, 'SameName');
+      new Construct('SameName');
     });
-
+    
+    root.pop();
     test.done();
   },
 
   'addMetadata(type, data) can be used to attach metadata to constructs FIND_ME'(test: Test) {
     const root = new Root();
-    const con = new Construct(root, 'MyConstruct');
+    root.push();
+      const con = new Construct('MyConstruct');
+    root.pop();
+    
     test.deepEqual(con.metadata, [], 'starts empty');
 
     con.addMetadata('key', 'value');
@@ -210,8 +235,8 @@ export = {
   },
 
   'addMetadata(type, undefined/null) is ignored'(test: Test) {
-    const root = new Root();
-    const con = new Construct(root, 'Foo');
+    const con = new Construct('Foo');
+
     con.addMetadata('Null', null);
     con.addMetadata('Undefined', undefined);
     con.addMetadata('True', true);
@@ -229,8 +254,7 @@ export = {
   },
 
   'addWarning(message) can be used to add a "WARNING" message entry to the construct'(test: Test) {
-    const root = new Root();
-    const con = new Construct(root, 'MyConstruct');
+    const con = new Construct('MyConstruct');
     con.addWarning('This construct is deprecated, use the other one instead');
     test.deepEqual(con.metadata[0].type, cxapi.WARNING_METADATA_KEY);
     test.deepEqual(con.metadata[0].data, 'This construct is deprecated, use the other one instead');
@@ -239,8 +263,7 @@ export = {
   },
 
   'addError(message) can be used to add a "ERROR" message entry to the construct'(test: Test) {
-    const root = new Root();
-    const con = new Construct(root, 'MyConstruct');
+    const con = new Construct('MyConstruct');
     con.addError('Stop!');
     test.deepEqual(con.metadata[0].type, cxapi.ERROR_METADATA_KEY);
     test.deepEqual(con.metadata[0].data, 'Stop!');
@@ -249,8 +272,7 @@ export = {
   },
 
   'addInfo(message) can be used to add an "INFO" message entry to the construct'(test: Test) {
-    const root = new Root();
-    const con = new Construct(root, 'MyConstruct');
+    const con = new Construct('MyConstruct');
     con.addInfo('Hey there, how do you do?');
     test.deepEqual(con.metadata[0].type, cxapi.INFO_METADATA_KEY);
     test.deepEqual(con.metadata[0].data, 'Hey there, how do you do?');
@@ -260,32 +282,30 @@ export = {
 
   'multiple children of the same type, with explicit names are welcome'(test: Test) {
     const root = new Root();
-    new MyBeautifulConstruct(root, 'mbc1');
-    new MyBeautifulConstruct(root, 'mbc2');
-    new MyBeautifulConstruct(root, 'mbc3');
-    new MyBeautifulConstruct(root, 'mbc4');
+    root.push();
+      new MyBeautifulConstruct('mbc1');
+      new MyBeautifulConstruct('mbc2');
+      new MyBeautifulConstruct('mbc3');
+      new MyBeautifulConstruct('mbc4');
+    root.pop();
     test.equal(root.children.length, 4);
     test.done();
   },
 
   'construct.required(props, name) can be used to validate that required properties are defined'(test: Test) {
-    const root = new Root();
-
     // should be ok
-    const c = new ConstructWithRequired(root, 'Construct', { requiredProp: 123, anotherRequiredProp: true });
+    const c = new ConstructWithRequired('Construct', { requiredProp: 123, anotherRequiredProp: true });
     test.equal(c.requiredProp, 123);
     test.equal(c.anotherRequiredProp, true);
 
     // should throw
-    test.throws(() => new ConstructWithRequired(root, 'C', { optionalProp: 'hello' } as any));
+    test.throws(() => new ConstructWithRequired('C', { optionalProp: 'hello' } as any));
     test.done();
   },
 
   'Construct name validation can be overridden'(test: Test) {
-    const root = new Root();
-
-    test.throws(() => new IAmSpartacusConstruct(root, "Caesar"));
-    new IAmSpartacusConstruct(root, "Spartacus");
+    test.throws(() => new IAmSpartacusConstruct("Caesar"));
+    new IAmSpartacusConstruct("Spartacus");
 
     test.done();
   },
@@ -306,10 +326,14 @@ export = {
     }
 
     class TheirConstruct extends Construct {
-      constructor(parent: Construct, name: string) {
-        super(parent, name);
-
-        new YourConstruct(this, 'YourConstruct');
+      constructor(name: string) {
+        super(name);
+        
+        this.push();
+        
+        new YourConstruct('YourConstruct');
+        
+        this.pop();
       }
 
       public validate() {
@@ -320,9 +344,13 @@ export = {
     class Stack extends Root {
       constructor() {
         super();
+        
+        this.push();
 
-        new MyConstruct(this, 'MyConstruct');
-        new TheirConstruct(this, 'TheirConstruct');
+        new MyConstruct('MyConstruct');
+        new TheirConstruct('TheirConstruct');
+        
+        this.pop();
       }
 
       public validate() {
@@ -359,26 +387,48 @@ export = {
     }
 
     const stack = new Root();
+    
+    stack.push();
 
-    const c0a = new LockableConstruct(stack, 'c0a');
-    const c0b = new Construct(stack, 'c0b');
+      const c0a = new LockableConstruct('c0a');
+      c0a.push();
+        const c1a = new Construct('c1a');
+        const c1b = new Construct('c1b');
 
-    const c1a = new Construct(c0a, 'c1a');
-    const c1b = new Construct(c0a, 'c1b');
+        // lock c0a        
+        c0a.lockMe();
 
-    c0a.lockMe();
+        // now we should still be able to add children to c0b, but not to c0a or any its children
+        test.throws(() => new Construct('fail1'), /Cannot add children to "c0a" during synthesis/);
+        
+        c1a.push();
+          test.throws(() => new Construct('fail2'), /Cannot add children to "c0a\/c1a" during synthesis/);
+        c1a.pop();
+        
+        c1b.push()
+          test.throws(() => new Construct('fail3'), /Cannot add children to "c0a\/c1b" during synthesis/);
+        c1b.pop();
+    
+        c0a.unlockMe();
+    
+        new Construct('c0aZ');
+        
+        c1a.push();
+          new Construct('c1aZ');
+        c1b.pop();
+        
+        c1b.push();
+          new Construct('c1bZ');
+        c1b.pop();
+        
+      c0a.pop();
 
-    // now we should still be able to add children to c0b, but not to c0a or any its children
-    new Construct(c0b, 'c1a');
-    test.throws(() => new Construct(c0a, 'fail1'), /Cannot add children to "c0a" during synthesis/);
-    test.throws(() => new Construct(c1a, 'fail2'), /Cannot add children to "c0a\/c1a" during synthesis/);
-    test.throws(() => new Construct(c1b, 'fail3'), /Cannot add children to "c0a\/c1b" during synthesis/);
+      const c0b = new Construct('c0b');
+      c0b.push();
+        new Construct('c1a');
+      c0b.pop();
 
-    c0a.unlockMe();
-
-    new Construct(c0a, 'c0aZ');
-    new Construct(c1a, 'c1aZ');
-    new Construct(c1b, 'c1bZ');
+    stack.pop();
 
     test.done();
   }
@@ -386,16 +436,26 @@ export = {
 
 function createTree(context?: any) {
   const root = new Root();
+
   if (context) {
     Object.keys(context).forEach(key => root.setContext(key, context[key]));
   }
 
-  const child1 = new Construct(root, 'Child1');
-  const child2 = new Construct(root, 'Child2');
-  const child1_1 = new Construct(child1, 'Child11');
-  const child1_2 = new Construct(child1, 'Child12');
-  const child1_1_1 = new Construct(child1_1, 'Child111');
-  const child2_1 = new Construct(child2, 'Child21');
+  root.push();
+    const child1 = new Construct('Child1');
+    child1.push();
+      const child1_1 = new Construct('Child11');
+      child1_1.push();
+        const child1_1_1 = new Construct('Child111');
+      child1_1.pop();
+      const child1_2 = new Construct('Child12');
+    child1.pop();
+    const child2 = new Construct('Child2');
+    child2.push();
+    const child2_1 = new Construct('Child21');
+  child2.pop();
+  
+  root.pop();
 
   return {
     root, child1, child2, child1_1, child1_2, child1_1_1, child2_1
@@ -403,8 +463,8 @@ function createTree(context?: any) {
 }
 
 class MyBeautifulConstruct extends Construct {
-  constructor(parent: Construct, name: string) {
-    super(parent, name);
+  constructor(name: string) {
+    super(name);
   }
 }
 
@@ -418,8 +478,8 @@ class ConstructWithRequired extends Construct {
   public readonly requiredProp: string;
   public readonly anotherRequiredProp: boolean;
 
-  constructor(parent: Construct, name: string, props: ConstructWithRequiredProps) {
-    super(parent, name);
+  constructor(name: string, props: ConstructWithRequiredProps) {
+    super(name);
 
     this.requiredProp = this.required(props, 'requiredProp');
     this.anotherRequiredProp = this.required(props, 'anotherRequiredProp');

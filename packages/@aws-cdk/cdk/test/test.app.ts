@@ -30,13 +30,18 @@ function withApp(context: { [key: string]: any } | undefined, block: (app: App) 
 
 function synth(context?: { [key: string]: any }): cxapi.SynthesizeResponse {
   return withApp(context, app => {
-    const stack1 = new Stack(app, 'stack1', { env: { account: '12345', region: 'us-east-1' } });
-    new Resource(stack1, 's1c1', { type: 'DummyResource', properties: { Prop1: 'Prop1' } });
-    const r2 = new Resource(stack1, 's1c2', { type: 'DummyResource', properties: { Foo: 123 } });
+    
+    const stack1 = new Stack('stack1', { env: { account: '12345', region: 'us-east-1' } });
+    Construct.tree.push(stack1);
+    new Resource('s1c1', { type: 'DummyResource', properties: { Prop1: 'Prop1' } });
+    const r2 = new Resource('s1c2', { type: 'DummyResource', properties: { Foo: 123 } });
+    Construct.tree.pop(stack1);
 
-    const stack2 = new Stack(app, 'stack2');
-    new Resource(stack2, 's2c1', { type: 'DummyResource', properties: { Prog2: 'Prog2' } });
-    const c1 = new MyConstruct(stack2, 's1c2');
+    const stack2 = new Stack('stack2');
+    Construct.tree.push(stack2);
+    new Resource('s2c1', { type: 'DummyResource', properties: { Prog2: 'Prog2' } });
+    const c1 = new MyConstruct('s1c2');
+    Construct.tree.pop(stack2);
 
     // add some metadata
     stack1.addMetadata('meta', 111);
@@ -96,8 +101,10 @@ export = {
 
   'synth(name) can be used programmatically'(test: Test) {
     const prog = new App();
-    const stack = new Stack(prog, 'MyStack');
-    new Resource(stack, 'MyResource', { type: 'MyResourceType' });
+    const stack = new Stack('MyStack');
+    Construct.tree.push(stack);
+    new Resource('MyResource', { type: 'MyResourceType' });
+    Construct.tree.pop(stack);
 
     let throws;
     try {
@@ -186,7 +193,7 @@ export = {
 
   'setContext(k,v) cannot be called after stacks have been added because stacks may use the context'(test: Test) {
     const prog = new App();
-    new Stack(prog, 's1');
+    new Stack('s1');
     test.throws(() => prog.setContext('foo', 'bar'));
     test.done();
   },
@@ -200,15 +207,22 @@ export = {
     }
 
     class Parent extends Stack {
+      constructor(id: string) {
+        super(id);
+        
+        this.push();
 
+        new Child('C1');
+        new Child('C2');
+
+        this.pop();
+      }
     }
 
     const app = new App();
 
-    const parent = new Parent(app, 'Parent');
-    new Child(parent, 'C1');
-    new Child(parent, 'C2');
-
+    new Parent('Parent');
+    
     test.throws(() => {
       app.synthesizeStacks(['Parent']);
     }, /Stack validation failed with the following errors/);
@@ -218,8 +232,10 @@ export = {
 
   'app.synthesizeStack(stack) will return a list of missing contextual information'(test: Test) {
     class MyStack extends Stack {
-      constructor(parent: App, name: string, props?: StackProps) {
-        super(parent, name, props);
+      constructor(name: string, props?: StackProps) {
+        super(name, props);
+        
+        this.push();
 
         this.reportMissingContext('missing-context-key', {
           provider: 'fake',
@@ -227,8 +243,7 @@ export = {
             account: '12345689012',
             region: 'ab-north-1',
           },
-        },
-        );
+        });
 
         this.reportMissingContext('missing-context-key-2', {
           provider: 'fake2',
@@ -237,13 +252,14 @@ export = {
             account: '12345689012',
             region: 'ab-south-1',
           },
-        },
-        );
+        });
+        
+        this.pop();
       }
     }
 
-    const response = withApp(undefined, app => {
-      new MyStack(app, 'MyStack');
+    const response = withApp(undefined, _ => {
+      new MyStack('MyStack');
     });
 
     test.deepEqual(response.stacks[0].missing, {
@@ -269,11 +285,15 @@ export = {
 };
 
 class MyConstruct extends Construct {
-  constructor(parent: Construct, name: string) {
-    super(parent, name);
+  constructor(name: string) {
+    super(name);
+    
+    this.push();
 
-    new Resource(this, 'r1', { type: 'ResourceType1' });
-    new Resource(this, 'r2', { type: 'ResourceType2', properties: { FromContext: this.getContext('ctx1') } });
+    new Resource('r1', { type: 'ResourceType1' });
+    new Resource('r2', { type: 'ResourceType2', properties: { FromContext: this.getContext('ctx1') } });
+    
+    this.pop();
   }
 }
 

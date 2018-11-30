@@ -154,9 +154,16 @@ export class TagManager extends Token {
    * Tags that will be removed during `tags` method
    */
   private readonly blockedTags: string[] = [];
+  
+  private readonly parent: Construct;
 
-  constructor(private readonly parent: Construct, props: TagManagerProps  = {}) {
+  constructor(props: TagManagerProps  = {}) {
     super();
+    
+    this.parent = Construct.tree.current;
+    if (!this.parent) {
+      throw new Error(`TagManager must be created within a construct`);
+    }
 
     const initialTags = props.initialTags || {};
     for (const key of Object.keys(initialTags)) {

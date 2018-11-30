@@ -74,10 +74,12 @@ export class SecretParameter extends Construct {
    */
   public value: Secret;
 
-  constructor(parent: Construct, name: string, props: SecretProps) {
-    super(parent, name);
+  constructor(name: string, props: SecretProps) {
+    super(name);
+    
+    this.push();
 
-    const param = new Parameter(this, 'Parameter', {
+    const param = new Parameter('Parameter', {
       type: 'AWS::SSM::Parameter::Value<String>',
       default: props.ssmParameter,
       description: props.description,
@@ -90,5 +92,7 @@ export class SecretParameter extends Construct {
     });
 
     this.value = new Secret(param.ref);
+    
+    this.pop();
   }
 }

@@ -16,12 +16,14 @@ export class ContextProvider {
 
   private readonly stack: Stack;
   private readonly props: ContextProviderProps;
+  private readonly context: Construct;
 
-  constructor(
-    private readonly context: Construct,
-    private readonly provider: string,
-    props: ContextProviderProps = {}) {
-    this.stack = Stack.find(context);
+  constructor(private readonly provider: string, props: ContextProviderProps = {}) {
+    if (!Construct.tree.current) {
+      throw Error(`Construct providers must be created within a construct`);
+    }
+    this.context = Construct.tree.current;
+    this.stack = Stack.find(this.context);
     this.props = {
       account: this.stack.env.account,
       region: this.stack.env.region,
@@ -133,15 +135,14 @@ function colonQuote(xs: string): string {
 export class AvailabilityZoneProvider {
   private provider: ContextProvider;
 
-  constructor(context: Construct) {
-    this.provider = new ContextProvider(context, cxapi.AVAILABILITY_ZONE_PROVIDER);
+  constructor() {
+    this.provider = new ContextProvider(cxapi.AVAILABILITY_ZONE_PROVIDER);
   }
 
   /**
    * Return the list of AZs for the current account and region
    */
   public get availabilityZones(): string[] {
-
     return this.provider.getStringListValue(['dummy1a', 'dummy1b', 'dummy1c']);
   }
 }
@@ -158,8 +159,8 @@ export interface SSMParameterProviderProps {
 export class SSMParameterProvider {
   private provider: ContextProvider;
 
-  constructor(context: Construct, props: SSMParameterProviderProps) {
-    this.provider = new ContextProvider(context, cxapi.SSM_PARAMETER_PROVIDER, props);
+  constructor(props: SSMParameterProviderProps) {
+    this.provider = new ContextProvider(cxapi.SSM_PARAMETER_PROVIDER, props);
   }
 
   /**

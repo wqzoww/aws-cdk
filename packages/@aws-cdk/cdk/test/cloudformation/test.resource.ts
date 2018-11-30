@@ -7,13 +7,16 @@ import { applyRemovalPolicy, Condition, Construct, DeletionPolicy,
 export = {
   'all resources derive from Resource, which derives from Entity'(test: Test) {
     const stack = new Stack();
-
-    new Resource(stack, 'MyResource', {
+    stack.push();
+    
+    new Resource('MyResource', {
       type: 'MyResourceType',
       properties: {
         Prop1: 'p1', Prop2: 123
       }
     });
+  
+    stack.pop();
 
     test.deepEqual(stack.toCloudFormation(), {
       Resources: {
@@ -32,17 +35,27 @@ export = {
 
   'resources must reside within a Stack and fail upon creation if not'(test: Test) {
     const root = new Root();
-    test.throws(() => new Resource(root, 'R1', { type: 'ResourceType' }));
+    root.push();
+    test.throws(() => new Resource('R1', { type: 'ResourceType' }));
+    root.pop();
     test.done();
   },
 
   'all entities have a logical ID calculated based on their full path in the tree'(test: Test) {
-    const stack = new Stack(undefined, 'TestStack', { namingScheme: new HashedAddressingScheme() });
-    const level1 = new Construct(stack, 'level1');
-    const level2 = new Construct(level1, 'level2');
-    const level3 = new Construct(level2, 'level3');
-    const res1 = new Resource(level1, 'childoflevel1', { type: 'MyResourceType1' });
-    const res2 = new Resource(level3, 'childoflevel3', { type: 'MyResourceType2' });
+    const stack = new Stack('TestStack', { namingScheme: new HashedAddressingScheme() });
+    stack.push();
+      const level1 = new Construct('level1');
+      level1.push();
+        const level2 = new Construct('level2');
+        level2.push();
+          const level3 = new Construct('level3');
+          level3.push();
+            const res2 = new Resource('childoflevel3', { type: 'MyResourceType2' });
+          level3.pop();
+        level2.pop();
+        const res1 = new Resource('childoflevel1', { type: 'MyResourceType1' });
+      level1.pop();
+    stack.pop();
 
     test.equal(withoutHash(res1.logicalId), 'level1childoflevel1');
     test.equal(withoutHash(res2.logicalId), 'level1level2level3childoflevel3');
@@ -52,9 +65,11 @@ export = {
 
   'resource.props can only be accessed by derived classes'(test: Test) {
     const stack = new Stack();
-    const res = new Counter(stack, 'MyResource', { Count: 10 });
+    stack.push();
+    const res = new Counter('MyResource', { Count: 10 });
     res.increment();
     res.increment(2);
+    stack.pop();
 
     test.deepEqual(stack.toCloudFormation(), {
       Resources: {
@@ -67,9 +82,11 @@ export = {
 
   'resource attributes can be retrieved using getAtt(s) or attribute properties'(test: Test) {
     const stack = new Stack();
-    const res = new Counter(stack, 'MyResource', { Count: 10 });
+    stack.push();
+    
+    const res = new Counter('MyResource', { Count: 10 });
 
-    new Resource(stack, 'YourResource', {
+    new Resource('YourResource', {
       type: 'Type',
       properties: {
         CounterName: res.getAtt('Name'),
@@ -77,6 +94,8 @@ export = {
         CounterURL: res.url,
       }
     });
+    
+    stack.pop();
 
     test.deepEqual(stack.toCloudFormation(), {
       Resources: {
@@ -97,13 +116,15 @@ export = {
 
   'ARN-type resource attributes have some common functionality'(test: Test) {
     const stack = new Stack();
-    const res = new Counter(stack, 'MyResource', { Count: 1 });
-    new Resource(stack, 'MyResource2', {
+    stack.push();
+    const res = new Counter('MyResource', { Count: 1 });
+    new Resource('MyResource2', {
       type: 'Type',
       properties: {
         Perm: res.arn
       }
     });
+    stack.pop();
 
     test.deepEqual(stack.toCloudFormation(), {
       Resources: {
@@ -124,9 +145,12 @@ export = {
 
   'resource.addDependency(e) can be used to add a DependsOn on another resource'(test: Test) {
     const stack = new Stack();
-    const r1 = new Counter(stack, 'Counter1', { Count: 1 });
-    const r2 = new Counter(stack, 'Counter2', { Count: 1 });
-    const r3 = new Resource(stack, 'Resource3', { type: 'MyResourceType' });
+    stack.push();
+    const r1 = new Counter('Counter1', { Count: 1 });
+    const r2 = new Counter('Counter2', { Count: 1 });
+    const r3 = new Resource('Resource3', { type: 'MyResourceType' });
+    stack.pop();
+    
     r2.addDependency(r1);
     r2.addDependency(r3);
 
@@ -153,9 +177,11 @@ export = {
 
   'conditions can be attached to a resource'(test: Test) {
     const stack = new Stack();
-    const r1 = new Resource(stack, 'Resource', { type: 'Type' });
-    const cond = new Condition(stack, 'MyCondition', { expression: new FnNot(new FnEquals('a', 'b')) });
+    stack.push();
+    const r1 = new Resource('Resource', { type: 'Type' });
+    const cond = new Condition('MyCondition', { expression: new FnNot(new FnEquals('a', 'b')) });
     r1.options.condition = cond;
+    stack.pop();
 
     test.deepEqual(stack.toCloudFormation(), {
       Resources: { Resource: { Type: 'Type', Condition: 'MyCondition' } },
@@ -167,7 +193,9 @@ export = {
 
   'creation/update/deletion policies can be set on a resource'(test: Test) {
     const stack = new Stack();
-    const r1 = new Resource(stack, 'Resource', { type: 'Type' });
+    stack.push();
+    
+    const r1 = new Resource('Resource', { type: 'Type' });
 
     r1.options.creationPolicy = { autoScalingCreationPolicy: { minSuccessfulInstancesPercent: 10 } };
     // tslint:disable-next-line:max-line-length
@@ -193,7 +221,9 @@ export = {
 
   'update policies UseOnlineResharding flag'(test: Test) {
     const stack = new Stack();
-    const r1 = new Resource(stack, 'Resource', { type: 'Type' });
+    stack.push();
+    const r1 = new Resource('Resource', { type: 'Type' });
+    stack.pop();
 
     r1.options.updatePolicy = { useOnlineResharding: true };
 
@@ -213,7 +243,9 @@ export = {
 
   'metadata can be set on a resource'(test: Test) {
     const stack = new Stack();
-    const r1 = new Resource(stack, 'Resource', { type: 'Type' });
+    stack.push();
+    const r1 = new Resource('Resource', { type: 'Type' });
+    stack.pop();
 
     r1.options.metadata = {
       MyKey: 10,
@@ -237,20 +269,26 @@ export = {
 
   'the "type" property is required when creating a resource'(test: Test) {
     const stack = new Stack();
-    test.throws(() => new Resource(stack, 'Resource', { notypehere: true } as any));
+    stack.push();
+    test.throws(() => new Resource('Resource', { notypehere: true } as any));
+    stack.pop();
     test.done();
   },
 
   'removal policy is a high level abstraction of deletion policy used by l2'(test: Test) {
     const stack = new Stack();
 
-    const orphan = new Resource(stack, 'Orphan', { type: 'T1' });
-    const forbid = new Resource(stack, 'Forbid', { type: 'T2' });
-    const destroy = new Resource(stack, 'Destroy', { type: 'T3' });
+    stack.push();
+    
+    const orphan = new Resource('Orphan', { type: 'T1' });
+    const forbid = new Resource('Forbid', { type: 'T2' });
+    const destroy = new Resource('Destroy', { type: 'T3' });
 
     applyRemovalPolicy(orphan, RemovalPolicy.Orphan);
     applyRemovalPolicy(forbid, RemovalPolicy.Forbid);
     applyRemovalPolicy(destroy, RemovalPolicy.Destroy);
+    
+    stack.pop();
 
     test.deepEqual(stack.toCloudFormation(), { Resources:
       { Orphan: { Type: 'T1', DeletionPolicy: 'Retain' },
@@ -266,12 +304,16 @@ export = {
       public readonly r2: Resource;
       public readonly r3: Resource;
 
-      constructor(parent: Construct, name: string) {
-        super(parent, name);
+      constructor(name: string) {
+        super(name);
+        
+        this.push();
 
-        this.r1 = new Resource(this, 'R1', { type: 'T1' });
-        this.r2 = new Resource(this, 'R2', { type: 'T2' });
-        this.r3 = new Resource(this, 'R3', { type: 'T3' });
+        this.r1 = new Resource('R1', { type: 'T1' });
+        this.r2 = new Resource('R2', { type: 'T2' });
+        this.r3 = new Resource('R3', { type: 'T3' });
+        
+        this.pop();
       }
 
       get dependencyElements() {
@@ -284,12 +326,16 @@ export = {
       public readonly r2: Resource;
       public readonly r3: Resource;
 
-      constructor(parent: Construct, name: string) {
-        super(parent, name);
+      constructor(name: string) {
+        super(name);
+        
+        this.push();
 
-        this.r1 = new Resource(this, 'R1', { type: 'T1' });
-        this.r2 = new Resource(this, 'R2', { type: 'T2' });
-        this.r3 = new Resource(this, 'R3', { type: 'T3' });
+        this.r1 = new Resource('R1', { type: 'T1' });
+        this.r2 = new Resource('R2', { type: 'T2' });
+        this.r3 = new Resource('R3', { type: 'T3' });
+        
+        this.pop();
       }
 
       get dependencyElements() {
@@ -302,10 +348,14 @@ export = {
     class C3 extends Construct implements IDependable {
       private readonly c2: C2;
 
-      constructor(parent: Construct, name: string) {
-        super(parent, name);
+      constructor(name: string) {
+        super(name);
+        
+        this.push();
 
-        this.c2 = new C2(this, 'C2');
+        this.c2 = new C2('C2');
+        
+        this.pop();
       }
 
       get dependencyElements() {
@@ -314,13 +364,16 @@ export = {
     }
 
     const stack = new Stack();
-    const c1 = new C1(stack, 'MyC1');
-    const c2 = new C2(stack, 'MyC2');
-    const c3 = new C3(stack, 'MyC3');
+    stack.push();
+    const c1 = new C1('MyC1');
+    const c2 = new C2('MyC2');
+    const c3 = new C3('MyC3');
 
-    const dependingResource = new Resource(stack, 'MyResource', { type: 'R' });
+    const dependingResource = new Resource('MyResource', { type: 'R' });
     dependingResource.addDependency(c1, c2);
     dependingResource.addDependency(c3);
+
+    stack.pop();
 
     test.deepEqual(stack.toCloudFormation(), { Resources:
       { MyC1R1FB2A562F: { Type: 'T1' },
@@ -344,7 +397,9 @@ export = {
 
   'resource.ref returns the {Ref} token'(test: Test) {
     const stack = new Stack();
-    const r = new Resource(stack, 'MyResource', { type: 'R' });
+    stack.push();
+    const r = new Resource('MyResource', { type: 'R' });
+    stack.pop();
 
     test.deepEqual(resolve(r.ref), { Ref: 'MyResource' });
     test.done();
@@ -354,7 +409,9 @@ export = {
     'addOverride(p, v) allows assigning arbitrary values to synthesized resource definitions'(test: Test) {
       // GIVEN
       const stack = new Stack();
-      const r = new Resource(stack, 'MyResource', { type: 'AWS::Resource::Type' });
+      stack.push();
+      const r = new Resource('MyResource', { type: 'AWS::Resource::Type' });
+      stack.pop();
 
       // WHEN
       r.addOverride('Type', 'YouCanEvenOverrideTheType');
@@ -374,8 +431,8 @@ export = {
     'addOverride(p, null) will assign an "null" value'(test: Test) {
       // GIVEN
       const stack = new Stack();
-
-      const r = new Resource(stack, 'MyResource', {
+      stack.push();
+      const r = new Resource('MyResource', {
         type: 'AWS::Resource::Type',
         properties: {
           Hello: {
@@ -386,6 +443,7 @@ export = {
           }
         }
       });
+      stack.pop();
 
       // WHEN
       r.addOverride('Properties.Hello.World.Value2', null);
@@ -402,8 +460,9 @@ export = {
     'addOverride(p, undefined) can be used to delete a value'(test: Test) {
       // GIVEN
       const stack = new Stack();
-
-      const r = new Resource(stack, 'MyResource', {
+      stack.push();
+      
+      const r = new Resource('MyResource', {
         type: 'AWS::Resource::Type',
         properties: {
           Hello: {
@@ -414,6 +473,8 @@ export = {
           }
         }
       });
+      
+      stack.pop();
 
       // WHEN
       r.addOverride('Properties.Hello.World.Value2', undefined);
@@ -430,8 +491,12 @@ export = {
     'addOverride(p, undefined) will not create empty trees'(test: Test) {
       // GIVEN
       const stack = new Stack();
+      
+      stack.push();
 
-      const r = new Resource(stack, 'MyResource', { type: 'AWS::Resource::Type' });
+      const r = new Resource('MyResource', { type: 'AWS::Resource::Type' });
+      
+      stack.pop();
 
       // WHEN
       r.addPropertyOverride('Tree.Exists', 42);
@@ -449,8 +514,9 @@ export = {
     'addDeletionOverride(p) and addPropertyDeletionOverride(pp) are sugar `undefined`'(test: Test) {
       // GIVEN
       const stack = new Stack();
+      stack.push();
 
-      const r = new Resource(stack, 'MyResource', {
+      const r = new Resource('MyResource', {
         type: 'AWS::Resource::Type',
         properties: {
           Hello: {
@@ -462,6 +528,8 @@ export = {
           }
         }
       });
+      
+      stack.pop();
 
       // WHEN
       r.addDeletionOverride('Properties.Hello.World.Value2');
@@ -479,7 +547,9 @@ export = {
     'addOverride(p, v) will overwrite any non-objects along the path'(test: Test) {
       // GIVEN
       const stack = new Stack();
-      const r = new Resource(stack, 'MyResource', {
+      stack.push();
+      
+      const r = new Resource('MyResource', {
         type: 'AWS::Resource::Type',
         properties: {
           Hello: {
@@ -487,6 +557,8 @@ export = {
           }
         }
       });
+      
+      stack.pop();
 
       // WHEN
       r.addOverride('Properties.Override1', [ 'Hello', 123 ]);
@@ -508,10 +580,14 @@ export = {
     'addPropertyOverride(pp, v) is a sugar for overriding properties'(test: Test) {
       // GIVEN
       const stack = new Stack();
-      const r = new Resource(stack, 'MyResource', {
+      stack.push();
+      
+      const r = new Resource('MyResource', {
         type: 'AWS::Resource::Type',
         properties: { Hello: { World: 42 } }
       });
+      
+      stack.pop();
 
       // WHEN
       r.addPropertyOverride('Hello.World', { Hey: 'Jude' });
@@ -528,10 +604,13 @@ export = {
 
       'can be used by derived classes to specify overrides before render()'(test: Test) {
         const stack = new Stack();
-
-        const r = new CustomizableResource(stack, 'MyResource', {
+        stack.push();
+        
+        const r = new CustomizableResource('MyResource', {
           prop1: 'foo'
         });
+        
+        stack.pop();
 
         r.setProperty('prop2', 'bar');
 
@@ -544,8 +623,9 @@ export = {
 
       '"properties" is undefined'(test: Test) {
         const stack = new Stack();
-
-        const r = new CustomizableResource(stack, 'MyResource');
+        stack.push();
+        const r = new CustomizableResource('MyResource');
+        stack.pop();
 
         r.setProperty('prop3', 'zoo');
 
@@ -558,8 +638,11 @@ export = {
 
       '"properties" is empty'(test: Test) {
         const stack = new Stack();
+        stack.push();
 
-        const r = new CustomizableResource(stack, 'MyResource', { });
+        const r = new CustomizableResource('MyResource', { });
+        
+        stack.pop();
 
         r.setProperty('prop3', 'zoo');
         r.setProperty('prop2', 'hey');
@@ -577,11 +660,12 @@ export = {
     const stack = new Stack();
     stack.setContext(cxapi.PATH_METADATA_ENABLE_CONTEXT, true);
 
-    const parent = new Construct(stack, 'Parent');
-
-    new Resource(parent, 'MyResource', {
-      type: 'MyResourceType',
-    });
+    stack.push();
+      const parent = new Construct('Parent');
+      parent.push();  
+        new Resource('MyResource', { type: 'MyResourceType' });
+      parent.pop();
+    stack.pop();
 
     test.deepEqual(stack.toCloudFormation(), { Resources:
       { ParentMyResource4B1FDBCC:
@@ -601,8 +685,8 @@ class Counter extends Resource {
   public readonly arn: string;
   public readonly url: string;
 
-  constructor(parent: Construct, name: string, props: CounterProps) {
-    super(parent, name, { type: 'My::Counter', properties: { Count: props.Count } });
+  constructor(name: string, props: CounterProps) {
+    super(name, { type: 'My::Counter', properties: { Count: props.Count } });
     this.arn = this.getAtt('Arn').toString();
     this.url = this.getAtt('URL').toString();
   }
@@ -617,8 +701,8 @@ function withoutHash(logId: string) {
 }
 
 class CustomizableResource extends Resource {
-  constructor(parent: Construct, id: string, props?: any) {
-    super(parent, id, { type: 'MyResourceType', properties: props });
+  constructor(id: string, props?: any) {
+    super(id, { type: 'MyResourceType', properties: props });
   }
 
   public setProperty(key: string, value: any) {

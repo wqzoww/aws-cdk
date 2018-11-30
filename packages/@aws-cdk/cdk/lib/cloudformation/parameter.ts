@@ -1,4 +1,3 @@
-import { Construct } from '../core/construct';
 import { Token } from '../core/tokens';
 import { Ref, Referenceable } from './stack';
 
@@ -86,8 +85,8 @@ export class Parameter extends Referenceable {
    * @param parent The parent construct.
    * @param props The parameter properties.
    */
-  constructor(parent: Construct, name: string, props: ParameterProps) {
-    super(parent, name);
+  constructor(name: string, props: ParameterProps) {
+    super(name);
     this.properties = props;
     this.value = new Ref(this);
   }

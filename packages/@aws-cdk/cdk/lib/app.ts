@@ -16,6 +16,7 @@ export class App extends Root {
   constructor() {
     super();
     this.loadContext();
+    this.push(); // app is pushed as the root and popped only when "synthesize" is called
   }
 
   private get stacks() {
@@ -89,6 +90,13 @@ export class App extends Root {
    * Synthesizes multiple stacks
    */
   public synthesizeStacks(stackNames: string[]): cxapi.SynthesizedStack[] {
+    this.pop();
+    
+    if (Construct.tree.current) {
+      throw new Error(`Invalid number of push/pop in the construct tree. ` +
+        'When "app.run()" is called we expect all constructs to have been popped.');
+    }
+    
     const ret: cxapi.SynthesizedStack[] = [];
     for (const stackName of stackNames) {
       ret.push(this.synthesizeStack(stackName));

@@ -1,4 +1,3 @@
-import { Construct } from '../core/construct';
 import { capitalizePropertyNames } from '../core/util';
 import { FnCondition } from './fn';
 import { Referenceable } from './stack';
@@ -69,8 +68,8 @@ export class Rule extends Referenceable {
    * @param parent The parent construct.
    * @param props The rule props.
    */
-  constructor(parent: Construct, name: string, props?: RuleProps) {
-    super(parent, name);
+  constructor(name: string, props?: RuleProps) {
+    super(name);
 
     this.ruleCondition = props && props.ruleCondition;
     this.assertions = props && props.assertions;

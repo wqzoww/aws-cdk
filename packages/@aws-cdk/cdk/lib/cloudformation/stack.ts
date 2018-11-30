@@ -99,9 +99,10 @@ export class Stack extends Construct {
    * @param name The name of the CloudFormation stack. Defaults to "Stack".
    * @param props Stack properties.
    */
-  public constructor(parent?: App, name?: string, props?: StackProps) {
+  public constructor(name?: string, props?: StackProps) {
     // For unit test convenience parents are optional, so bypass the type check when calling the parent.
-    super(parent!, name!);
+    super(name!); 
+    
     this.env = this.parseEnvironment(props);
 
     this.logicalIds = new LogicalIDs(props && props.namingScheme ? props.namingScheme : new HashedAddressingScheme());
@@ -324,8 +325,8 @@ export abstract class StackElement extends Construct implements IDependable {
    * @param parent The parent construct
    * @param props Construct properties
    */
-  constructor(parent: Construct, name: string) {
-    super(parent, name);
+  constructor(name: string) {
+    super(name);
     const s = Stack.find(this);
     if (!s) {
       throw new Error('The tree root must be derived from "Stack"');

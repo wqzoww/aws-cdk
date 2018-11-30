@@ -1,5 +1,4 @@
 import cxapi = require('@aws-cdk/cx-api');
-import { Construct } from '../core/construct';
 import { capitalizePropertyNames, ignoreEmpty } from '../core/util';
 import { CloudFormationToken } from './cloudformation-token';
 import { Condition } from './condition';
@@ -78,8 +77,8 @@ export class Resource extends Referenceable {
    * Creates a resource construct.
    * @param resourceType The CloudFormation type of this resource (e.g. AWS::DynamoDB::Table)
    */
-  constructor(parent: Construct, name: string, props: ResourceProps) {
-    super(parent, name);
+  constructor(name: string, props: ResourceProps) {
+    super(name);
 
     if (!props.type) {
       throw new Error('The `type` property is required');
