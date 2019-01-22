@@ -334,12 +334,12 @@ export class ServerDeploymentGroup extends ServerDeploymentGroupBase {
       deploymentStyle: props.loadBalancer === undefined
         ? undefined
         : {
-          deploymentOption: 'WITH_TRAFFIC_CONTROL',
+          deploymentOption: DeploymentOption.WithTrafficControl,
         },
       ec2TagSet: this.ec2TagSet(props.ec2InstanceTags),
       onPremisesTagSet: this.onPremiseTagSet(props.onPremiseInstanceTags),
-      alarmConfiguration: new cdk.Token(() => this.renderAlarmConfiguration(props.ignorePollAlarmsFailure)),
-      autoRollbackConfiguration: new cdk.Token(() => this.renderAutoRollbackConfiguration(props.autoRollback)),
+      alarmConfiguration: new cdk.Token(() => renderAlarmConfiguration(this.alarms, props.ignorePollAlarmsFailure)),
+      autoRollbackConfiguration: new cdk.Token(() => renderAutoRollbackConfiguration(this.alarms, props.autoRollback)),
     });
 
     this.deploymentGroupName = resource.deploymentGroupName;
@@ -513,51 +513,51 @@ export class ServerDeploymentGroup extends ServerDeploymentGroupBase {
     }
     return tagsInGroup;
   }
+}
 
-  private renderAlarmConfiguration(ignorePollAlarmFailure?: boolean):
+function renderAlarmConfiguration(alarms: cloudwatch.Alarm[], ignorePollAlarmFailure?: boolean):
       CfnDeploymentGroup.AlarmConfigurationProperty | undefined {
-    return this.alarms.length === 0
+    return alarms.length === 0
       ? undefined
       : {
-        alarms: this.alarms.map(a => ({ name: a.alarmName })),
+        alarms: alarms.map(a => ({ name: a.alarmName })),
         enabled: true,
         ignorePollAlarmFailure,
       };
   }
 
-  private renderAutoRollbackConfiguration(autoRollbackConfig: AutoRollbackConfig = {}):
-      CfnDeploymentGroup.AutoRollbackConfigurationProperty | undefined {
-    const events = new Array<string>();
+function renderAutoRollbackConfiguration(alarms: cloudwatch.Alarm[], autoRollbackConfig: AutoRollbackConfig = {}):
+    CfnDeploymentGroup.AutoRollbackConfigurationProperty | undefined {
+  const events = new Array<string>();
 
-    // we roll back failed deployments by default
-    if (autoRollbackConfig.failedDeployment !== false) {
-      events.push('DEPLOYMENT_FAILURE');
-    }
-
-    // we _do not_ roll back stopped deployments by default
-    if (autoRollbackConfig.stoppedDeployment === true) {
-      events.push('DEPLOYMENT_STOP_ON_REQUEST');
-    }
-
-    // we _do not_ roll back alarm-triggering deployments by default
-    // unless the Deployment Group has at least one alarm
-    if (autoRollbackConfig.deploymentInAlarm !== false) {
-      if (this.alarms.length > 0) {
-        events.push('DEPLOYMENT_STOP_ON_ALARM');
-      } else if (autoRollbackConfig.deploymentInAlarm === true) {
-        throw new Error(
-          "The auto-rollback setting 'deploymentInAlarm' does not have any effect unless you associate " +
-          "at least one CloudWatch alarm with the Deployment Group");
-      }
-    }
-
-    return events.length > 0
-      ? {
-        enabled: true,
-        events,
-      }
-      : undefined;
+  // we roll back failed deployments by default
+  if (autoRollbackConfig.failedDeployment !== false) {
+    events.push(AutoRollbackEvent.DeploymentFailure);
   }
+
+  // we _do not_ roll back stopped deployments by default
+  if (autoRollbackConfig.stoppedDeployment === true) {
+    events.push(AutoRollbackEvent.DeploymentStopOnRequest);
+  }
+
+  // we _do not_ roll back alarm-triggering deployments by default
+  // unless the Deployment Group has at least one alarm
+  if (autoRollbackConfig.deploymentInAlarm !== false) {
+    if (alarms.length > 0) {
+      events.push(AutoRollbackEvent.DeploymentStopOnAlarm);
+    } else if (autoRollbackConfig.deploymentInAlarm === true) {
+      throw new Error(
+        "The auto-rollback setting 'deploymentInAlarm' does not have any effect unless you associate " +
+        "at least one CloudWatch alarm with the Deployment Group");
+    }
+  }
+
+  return events.length > 0
+    ? {
+      enabled: true,
+      events,
+    }
+    : undefined;
 }
 
 function deploymentGroupNameToArn(applicationName: string, deploymentGroupName: string, scope: cdk.IConstruct): string {
@@ -567,4 +567,155 @@ function deploymentGroupNameToArn(applicationName: string, deploymentGroupName: 
     resourceName: `${applicationName}/${deploymentGroupName}`,
     sep: ':',
   });
+}
+
+import lambda = require('@aws-cdk/aws-lambda');
+import { CfnApplication } from './codedeploy.generated';
+
+export interface LambdaApplicationProps {
+  applicationName?: string;
+}
+export class LambdaApplication extends cdk.Construct {
+  public readonly applicationName: string;
+
+  constructor(scope: cdk.Construct, id: string, props: LambdaApplicationProps = {}) {
+    super(scope, id);
+
+    const resource = new CfnApplication(this, 'Resource', {
+      ...props,
+      computePlatform: 'Lambda'
+    });
+    this.applicationName = resource.applicationName;
+  }
+
+  public addFunction(id: string, fn: lambda.Function) {
+    new LambdaDeploymentGroup(this, id, {
+      application: this,
+      lambda: fn
+    });
+  }
+}
+
+export interface LambdaDeploymentGroupProps {
+  application: LambdaApplication;
+  deploymentGroupName?: string;
+  deploymentType?: DeploymentType;
+  trafficShiftingConfig?: TrafficShiftConfig;
+  alarms?: cloudwatch.Alarm[];
+
+  serviceRole?: iam.Role;
+
+  lambda: lambda.Function;
+  version?: string;
+  aliasName?: string;
+  preHook?: lambda.Function;
+  postHook?: lambda.Function;
+}
+export class LambdaDeploymentGroup extends cdk.Construct {
+  public readonly application: LambdaApplication;
+  public readonly deploymentGroupName: string;
+  public readonly deploymentGroupArn: string;
+  public readonly version: lambda.Version;
+  public readonly alias: lambda.Alias;
+
+  constructor(scope: cdk.Construct, id: string, props: LambdaDeploymentGroupProps) {
+    super(scope, id);
+
+    let serviceRole: iam.Role | undefined = props.serviceRole;
+    if (serviceRole) {
+      if (serviceRole.assumeRolePolicy) {
+        serviceRole.assumeRolePolicy.addStatement(new iam.PolicyStatement()
+          .addAction('sts::AssumeRole')
+          .addServicePrincipal('codeploy.amazonaws.com'));
+      }
+    } else {
+      serviceRole = new iam.Role(this, 'ServiceRole', {
+        assumedBy: new iam.ServicePrincipal('codedeploy.amazonaws.com')
+      });
+    }
+    serviceRole.attachManagedPolicy('arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda');
+
+    const alarms = props.alarms || [];
+
+    const resource = new CfnDeploymentGroup(this, 'Resource', {
+      applicationName: props.application.applicationName,
+      serviceRoleArn: serviceRole.roleArn,
+      deploymentGroupName: props.deploymentGroupName,
+      deploymentConfigName: `CodeDeployDefault.Lambda${props.trafficShiftingConfig || TrafficShiftConfig.AllAtOnce}`,
+      deploymentStyle: {
+        deploymentType: DeploymentType.BlueGreen,
+        deploymentOption: DeploymentOption.WithTrafficControl
+      },
+
+      alarmConfiguration: new cdk.Token(() => renderAlarmConfiguration(alarms)),
+      autoRollbackConfiguration: new cdk.Token(() => renderAutoRollbackConfiguration(alarms)),
+    });
+
+    this.application = props.application;
+    this.deploymentGroupName = resource.deploymentGroupName;
+    this.deploymentGroupArn = deploymentGroupNameToArn(this.application.applicationName, this.deploymentGroupName, this);
+
+    const versionId = props.version || 'TODO: hash code';
+    this.version = new lambda.Version(this, 'Version' + versionId, {
+      lambda: props.lambda
+    });
+    this.alias = new lambda.Alias(this, 'Alias', {
+      aliasName: props.aliasName || `CodeDeploy-${props.lambda.functionName}-${resource.deploymentGroupName}`,
+      version: this.version
+    });
+
+    if (props.preHook) {
+      this.grantPutLifecycleEventHookExecutionStatus(props.preHook.role);
+      props.preHook.grantInvoke(serviceRole);
+    }
+    if (props.postHook) {
+      this.grantPutLifecycleEventHookExecutionStatus(props.postHook.role);
+      props.postHook.grantInvoke(serviceRole);
+    }
+
+    (this.alias.node.findChild('Resource') as lambda.CfnAlias).options.updatePolicy = {
+      codeDeployLambdaAliasUpdate: {
+        applicationName: props.application.applicationName,
+        deploymentGroupName: resource.deploymentGroupName,
+        beforeAllowTrafficHook: props.preHook === undefined ? undefined : props.preHook.functionName,
+        afterAllowTrafficHook: props.postHook === undefined ? undefined : props.postHook.functionName
+      }
+    };
+  }
+
+  public grantPutLifecycleEventHookExecutionStatus(principal?: iam.IPrincipal) {
+    if (principal) {
+      principal.addToPolicy(new iam.PolicyStatement()
+        .addResource(this.deploymentGroupArn)
+        .addAction('codedeploy:PutLifecycleEventHookExecutionStatus'));
+    }
+  }
+}
+
+export enum DeploymentType {
+  InPlace = 'IN_PLACE',
+  BlueGreen = 'BLUE_GREEN'
+}
+
+export enum TrafficShiftConfig {
+  AllAtOnce = 'AllAtOnce',
+  Canary10Percent30Minutes = 'Canary10Percent30Minutes',
+  Canary10Percent5Minutes = 'Canary10Percent5Minutes',
+  Canary10Percent10Minutes = 'Canary10Percent10Minutes',
+  Canary10Percent15Minutes = 'Canary10Percent15Minutes',
+  Linear10PercentEvery10Minutes = 'Linear10PercentEvery10Minutes',
+  Linear10PercentEvery1Minute = 'Linear10PercentEvery1Minute',
+  Linear10PercentEvery2Minutes = 'Linear10PercentEvery2Minutes',
+  Linear10PercentEvery3Minutes = 'Linear10PercentEvery3Minutes'
+}
+
+export enum DeploymentOption {
+  WithTrafficControl = 'WITH_TRAFFIC_CONTROL',
+  WithoutTrafficControl = 'WITHOUT_TRAFFIC_CONTROL',
+}
+
+export enum AutoRollbackEvent {
+  DeploymentFailure = 'DEPLOYMENT_FAILURE',
+  DeploymentStopOnAlarm = 'DEPLOYMENT_STOP_ON_ALARM',
+  DeploymentStopOnRequest = 'DEPLOYMENT_STOP_ON_REQUEST'
 }
