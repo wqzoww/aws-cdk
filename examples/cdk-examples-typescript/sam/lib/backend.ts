@@ -5,7 +5,6 @@ import codedeploy = require('@aws-cdk/aws-codedeploy');
 import dynamodb = require('@aws-cdk/aws-dynamodb');
 import lambda = require('@aws-cdk/aws-lambda');
 import cdk = require('@aws-cdk/cdk');
-import path = require('path');
 
 /**
  * Example of a web/mobile backend like you might see in SAM.
@@ -50,7 +49,26 @@ Auth:
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    // Create the 'SimpleTable' and Function with read/write access
+    const table = new dynamodb.Table(this, 'Table', {
+      partitionKey: {
+        name: 'id',
+        type: dynamodb.AttributeType.String
+      }
+    });
+    const handler = new lambda.Function(this, 'Backend', {
+      code: lambda.Code.asset('../lambda/handler'),
+      handler: 'index.handler',
+      runtime: lambda.Runtime.NodeJS810,
+      environment: {
+        tableName: table.tableName
+      }
+    });
+    table.grantReadWriteData(handler.role);
+
+    // LambdaApplication boiler-plate: groups our functions together.
     const application = new codedeploy.LambdaApplication(this, 'Deployment');
+    // Pre and Post hooks that run before/after traffic shifting.
     const preHook = new lambda.Function(this, 'PreHook', {
       code: lambda.Code.asset('../lambda/pre-hook'),
       handler: 'index.handler',
@@ -61,28 +79,11 @@ Auth:
       handler: 'index.handler',
       runtime: lambda.Runtime.NodeJS810
     });
-
-    const table = new dynamodb.Table(this, 'Table', {
-      partitionKey: {
-        name: 'id',
-        type: dynamodb.AttributeType.String
-      }
-    });
-
-    const handler = new lambda.Function(this, 'Backend', {
-      code: new lambda.AssetCode(path.join(__dirname, '..', 'handlers', 'cron.js'), assets.AssetPackaging.File),
-      handler: '../lambda/handler',
-      runtime: lambda.Runtime.NodeJS810,
-      environment: {
-        tableName: table.tableName
-      }
-    });
-    table.grantReadWriteData(handler.role);
-
-    const deploymnetGroup = new codedeploy.LambdaDeploymentGroup(this, 'Group', {
+    // Create a DeploymentGroup (one per function) and configure traffic shifting, hooks, alarms, etc.
+    const deploymentGroup = new codedeploy.LambdaDeploymentGroup(this, 'Group', {
       application,
       lambda: handler,
-      version: '8',
+      version: '8', // TODO: compute hash of code asset instead of hard-coding.
       trafficShiftingConfig: codedeploy.TrafficShiftConfig.Linear10PercentEvery1Minute,
 
       preHook,
@@ -98,13 +99,14 @@ Auth:
       ]
     });
 
+    // Create our REST API and point it at the versioned alias.
+    // TODO: Create a wrapper-Function so developers aren't required to remember to use 'Alias'.
     const api = new apigateway.LambdaRestApi(this, 'Api', {
-      handler: deploymnetGroup.alias,
+      handler: deploymentGroup.alias,
       proxy: false
     });
     const users = api.root.addResource('users');
     const user = users.addResource('{userId}');
-
     users.addMethod('GET');
     users.addMethod('POST');
     user.addMethod('GET');
