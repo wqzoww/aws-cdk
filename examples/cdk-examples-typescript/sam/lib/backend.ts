@@ -1,5 +1,7 @@
 import assets = require('@aws-cdk/assets');
 import apigateway = require('@aws-cdk/aws-apigateway');
+import cloudwatch = require('@aws-cdk/aws-cloudwatch');
+import codedeploy = require('@aws-cdk/aws-codedeploy');
 import dynamodb = require('@aws-cdk/aws-dynamodb');
 import lambda = require('@aws-cdk/aws-lambda');
 import cdk = require('@aws-cdk/cdk');
@@ -48,6 +50,18 @@ Auth:
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    const application = new codedeploy.LambdaApplication(this, 'Deployment');
+    const preHook = new lambda.Function(this, 'PreHook', {
+      code: lambda.Code.asset('../lambda/pre-hook'),
+      handler: 'index.handler',
+      runtime: lambda.Runtime.NodeJS810
+    });
+    const postHook = new lambda.Function(this, 'PostHook', {
+      code: lambda.Code.asset('../lambda/post-hook'),
+      handler: 'index.handler',
+      runtime: lambda.Runtime.NodeJS810
+    });
+
     const table = new dynamodb.Table(this, 'Table', {
       partitionKey: {
         name: 'id',
@@ -57,13 +71,35 @@ Auth:
 
     const handler = new lambda.Function(this, 'Backend', {
       code: new lambda.AssetCode(path.join(__dirname, '..', 'handlers', 'cron.js'), assets.AssetPackaging.File),
-      handler: 'index.js',
-      runtime: lambda.Runtime.NodeJS810
+      handler: '../lambda/handler',
+      runtime: lambda.Runtime.NodeJS810,
+      environment: {
+        tableName: table.tableName
+      }
     });
     table.grantReadWriteData(handler.role);
 
+    const deploymnetGroup = new codedeploy.LambdaDeploymentGroup(this, 'Group', {
+      application,
+      lambda: handler,
+      version: '8',
+      trafficShiftingConfig: codedeploy.TrafficShiftConfig.Linear10PercentEvery1Minute,
+
+      preHook,
+      postHook,
+
+      alarms: [
+        new cloudwatch.Alarm(this, 'Errors', {
+          metric: handler.metricErrors(),
+          threshold: 1,
+          comparisonOperator: cloudwatch.ComparisonOperator.GreaterThanThreshold,
+          evaluationPeriods: 1
+        })
+      ]
+    });
+
     const api = new apigateway.LambdaRestApi(this, 'Api', {
-      handler,
+      handler: deploymnetGroup.alias,
       proxy: false
     });
     const users = api.root.addResource('users');

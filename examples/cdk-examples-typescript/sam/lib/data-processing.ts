@@ -1,5 +1,5 @@
 import assets = require('@aws-cdk/assets');
-import dynamodb = require('@aws-cdk/aws-dynamodb');
+// import dynamodb = require('@aws-cdk/aws-dynamodb');
 import kinesis = require('@aws-cdk/aws-kinesis');
 import lambda = require('@aws-cdk/aws-lambda');
 import eventSource = require('@aws-cdk/aws-lambda-event-sources');
@@ -33,20 +33,21 @@ export class RealTimeDataProcessing extends cdk.Stack {
       batchSize: 10
     }));
 
-    const table = new dynamodb.Table(this, 'Table', {
-      partitionKey: {
-        name: 'id',
-        type: dynamodb.AttributeType.String
-      },
-      streamSpecification: dynamodb.StreamViewType.NewImage
-    });
-    const dynamoConsumer = new lambda.Function(this, 'DynamoConsumer', {
-      code: new lambda.AssetCode(path.join(__dirname, '..', 'handlers', 'dynamo-consumer.js'), assets.AssetPackaging.File),
-      handler: 'index.js',
-      runtime: lambda.Runtime.NodeJS810
-    });
-    dynamoConsumer.addEventSource(new eventSource.DynamoEventSource(table, {
-      startingPosition: lambda.StartingPosition.TrimHorizon
-    }));
+    // TODO
+    // const table = new dynamodb.Table(this, 'Table', {
+    //   partitionKey: {
+    //     name: 'id',
+    //     type: dynamodb.AttributeType.String
+    //   },
+    //   streamSpecification: dynamodb.StreamViewType.NewImage
+    // });
+    // const dynamoConsumer = new lambda.Function(this, 'DynamoConsumer', {
+    //   code: new lambda.AssetCode(path.join(__dirname, '..', 'handlers', 'dynamo-consumer.js'), assets.AssetPackaging.File),
+    //   handler: 'index.js',
+    //   runtime: lambda.Runtime.NodeJS810
+    // });
+    // dynamoConsumer.addEventSource(new eventSource.DynamoEventSource(table, {
+    //   startingPosition: lambda.StartingPosition.TrimHorizon
+    // }));
   }
 }
