@@ -1,8 +1,9 @@
 import reflect = require('jsii-reflect');
 import { TypeKind } from 'jsii-spec';
-
+import { gatherStatistics, Statistics } from './stats';
 export interface Report {
   modules: Module[];
+  stats: Statistics
 }
 
 export interface Module {
@@ -28,9 +29,11 @@ export interface Resource {
 export function createReport(ts: reflect.TypeSystem): Report {
   const constructClass = ts.findClass('@aws-cdk/cdk.Construct');
   const resourceClass = ts.findClass('@aws-cdk/cdk.Resource');
+  const modules = ts.assemblies.map(a => analyzeModule(a));
 
   const report: Report = {
-    modules: ts.assemblies.map(a => analyzeModule(a))
+    modules,
+    stats: gatherStatistics(ts, modules)
   };
 
   return report;

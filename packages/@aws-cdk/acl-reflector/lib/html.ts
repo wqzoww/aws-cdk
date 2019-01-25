@@ -1,6 +1,8 @@
 import reflect = require('jsii-reflect');
 import { Report } from './report';
 
+// tslint:disable:max-line-length
+
 export function writeHtml(ts: reflect.TypeSystem, report: Report, out: NodeJS.WriteStream = process.stdout) {
   let indent = 0;
 
@@ -45,6 +47,27 @@ export function writeHtml(ts: reflect.TypeSystem, report: Report, out: NodeJS.Wr
     });
 
     e('body', () => {
+
+      e('h1', 'Statistics');
+      e('li', 'Modules');
+      e('ul', () => {
+        e('li', `Total: ${report.stats.modules.total}`);
+        e('li', `Framework: ${report.stats.modules.framework}`);
+        e('li', `AWS: ${report.stats.modules.aws}`);
+      });
+      e('li', 'Types');
+      e('ul', () => {
+        e('li', `Total: ${report.stats.types.total}`);
+        e('li', `Generated: ${report.stats.types.generated}`);
+        e('li', `Hand-written: ${report.stats.types.handwritten}`);
+      });
+      e('li', 'L2 Coverage');
+      e('ul', () => {
+        e('li', `Modules: %${Math.floor(report.stats.modules.layer2 / report.stats.modules.aws * 100)}`);
+        e('li', `Resources: %${Math.floor(report.stats.resources.layer2 / report.stats.resources.total * 100)}`);
+      });
+
+      e('h1', 'AWS Construct Library');
 
       e('table width="100%"', () => {
 
