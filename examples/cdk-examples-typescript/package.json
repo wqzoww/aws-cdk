@@ -23,6 +23,7 @@
     "pkglint": "^0.23.0"
   },
   "dependencies": {
+    "@aws-cdk/aws-apigateway": "^0.23.0",
     "@aws-cdk/aws-autoscaling": "^0.23.0",
     "@aws-cdk/aws-cloudformation": "^0.23.0",
     "@aws-cdk/aws-cognito": "^0.23.0",
@@ -37,8 +38,10 @@
     "@aws-cdk/aws-neptune": "^0.23.0",
     "@aws-cdk/aws-rds": "^0.23.0",
     "@aws-cdk/aws-s3": "^0.23.0",
+    "@aws-cdk/aws-serverless": "^0.23.0",
     "@aws-cdk/aws-sns": "^0.23.0",
     "@aws-cdk/aws-sqs": "^0.23.0",
+    "@aws-cdk/aws-ssm": "^0.23.0",
     "@aws-cdk/cdk": "^0.23.0",
     "@aws-cdk/runtime-values": "^0.23.0"
   },
