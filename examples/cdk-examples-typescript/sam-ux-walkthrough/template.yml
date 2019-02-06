@@ -13,7 +13,7 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
     Metadata:
-      aws:cdk:path: ux-walkthrough/TweetCount/Resource
+      aws:cdk:path: sam-ux-walkthrough/TweetCount/Resource
   ApiHandlerServiceRole592E70E9:
     Type: AWS::IAM::Role
     Properties:
@@ -31,7 +31,7 @@ Resources:
               - Ref: AWS::Partition
               - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
     Metadata:
-      aws:cdk:path: ux-walkthrough/ApiHandler/ServiceRole/Resource
+      aws:cdk:path: sam-ux-walkthrough/ApiHandler/ServiceRole/Resource
   ApiHandlerServiceRoleDefaultPolicy10321D87:
     Type: AWS::IAM::Policy
     Properties:
@@ -55,7 +55,7 @@ Resources:
       Roles:
         - Ref: ApiHandlerServiceRole592E70E9
     Metadata:
-      aws:cdk:path: ux-walkthrough/ApiHandler/ServiceRole/DefaultPolicy/Resource
+      aws:cdk:path: sam-ux-walkthrough/ApiHandler/ServiceRole/DefaultPolicy/Resource
   ApiHandler5E7490E8:
     Type: AWS::Lambda::Function
     Properties:
@@ -89,7 +89,7 @@ Resources:
       - ApiHandlerServiceRole592E70E9
       - ApiHandlerServiceRoleDefaultPolicy10321D87
     Metadata:
-      aws:cdk:path: ux-walkthrough/ApiHandler/Resource
+      aws:cdk:path: sam-ux-walkthrough/ApiHandler/Resource
       aws:asset:path: /Volumes/Unix/aws/aws-cdk/aws-cdk/examples/cdk-examples-typescript/sam-ux-walkthrough/endpoint
       aws:asset:property: Code
   ApiHandlerApiPermissionGETcount6326B9F8:
@@ -114,7 +114,7 @@ Resources:
             - Ref: ApiDeploymentStageprod3EB9684E
             - /GET/count
     Metadata:
-      aws:cdk:path: ux-walkthrough/ApiHandler/ApiPermission.GET..count
+      aws:cdk:path: sam-ux-walkthrough/ApiHandler/ApiPermission.GET..count
   ApiHandlerApiPermissionTestGETcount2C8F13E8:
     Type: AWS::Lambda::Permission
     Properties:
@@ -135,13 +135,13 @@ Resources:
             - Ref: ApiF70053CD
             - /test-invoke-stage/GET/count
     Metadata:
-      aws:cdk:path: ux-walkthrough/ApiHandler/ApiPermission.Test.GET..count
+      aws:cdk:path: sam-ux-walkthrough/ApiHandler/ApiPermission.Test.GET..count
   ApiF70053CD:
     Type: AWS::ApiGateway::RestApi
     Properties:
       Name: Api
     Metadata:
-      aws:cdk:path: ux-walkthrough/Api/Resource
+      aws:cdk:path: sam-ux-walkthrough/Api/Resource
   ApiDeploymentB17BE62Dda53bccfc3867ac2effe7ca84cab19c1:
     Type: AWS::ApiGateway::Deployment
     Properties:
@@ -152,7 +152,7 @@ Resources:
       - Apicount34C4EC0C
       - ApicountGET57B79D28
     Metadata:
-      aws:cdk:path: ux-walkthrough/Api/Deployment/Resource
+      aws:cdk:path: sam-ux-walkthrough/Api/Deployment/Resource
   ApiDeploymentStageprod3EB9684E:
     Type: AWS::ApiGateway::Stage
     Properties:
@@ -162,7 +162,7 @@ Resources:
         Ref: ApiDeploymentB17BE62Dda53bccfc3867ac2effe7ca84cab19c1
       StageName: prod
     Metadata:
-      aws:cdk:path: ux-walkthrough/Api/DeploymentStage.prod/Resource
+      aws:cdk:path: sam-ux-walkthrough/Api/DeploymentStage.prod/Resource
   ApiCloudWatchRole73EC6FC4:
     Type: AWS::IAM::Role
     Properties:
@@ -180,7 +180,7 @@ Resources:
               - Ref: AWS::Partition
               - :iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
     Metadata:
-      aws:cdk:path: ux-walkthrough/Api/CloudWatchRole/Resource
+      aws:cdk:path: sam-ux-walkthrough/Api/CloudWatchRole/Resource
   ApiAccountA18C9B29:
     Type: AWS::ApiGateway::Account
     Properties:
@@ -191,7 +191,7 @@ Resources:
     DependsOn:
       - ApiF70053CD
     Metadata:
-      aws:cdk:path: ux-walkthrough/Api/Account
+      aws:cdk:path: sam-ux-walkthrough/Api/Account
   Apicount34C4EC0C:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -203,7 +203,7 @@ Resources:
       RestApiId:
         Ref: ApiF70053CD
     Metadata:
-      aws:cdk:path: ux-walkthrough/Api/count/Resource
+      aws:cdk:path: sam-ux-walkthrough/Api/count/Resource
   ApicountGET57B79D28:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -229,7 +229,7 @@ Resources:
                   - Arn
               - /invocations
     Metadata:
-      aws:cdk:path: ux-walkthrough/Api/count/GET/Resource
+      aws:cdk:path: sam-ux-walkthrough/Api/count/GET/Resource
   TwitterProcessorServiceRole3161D980:
     Type: AWS::IAM::Role
     Properties:
@@ -247,7 +247,7 @@ Resources:
               - Ref: AWS::Partition
               - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
     Metadata:
-      aws:cdk:path: ux-walkthrough/TwitterProcessor/ServiceRole/Resource
+      aws:cdk:path: sam-ux-walkthrough/TwitterProcessor/ServiceRole/Resource
   TwitterProcessorServiceRoleDefaultPolicy17F6898F:
     Type: AWS::IAM::Policy
     Properties:
@@ -275,7 +275,7 @@ Resources:
       Roles:
         - Ref: TwitterProcessorServiceRole3161D980
     Metadata:
-      aws:cdk:path: ux-walkthrough/TwitterProcessor/ServiceRole/DefaultPolicy/Resource
+      aws:cdk:path: sam-ux-walkthrough/TwitterProcessor/ServiceRole/DefaultPolicy/Resource
   TwitterProcessor142FC142:
     Type: AWS::Lambda::Function
     Properties:
@@ -309,41 +309,9 @@ Resources:
       - TwitterProcessorServiceRole3161D980
       - TwitterProcessorServiceRoleDefaultPolicy17F6898F
     Metadata:
-      aws:cdk:path: ux-walkthrough/TwitterProcessor/Resource
+      aws:cdk:path: sam-ux-walkthrough/TwitterProcessor/Resource
       aws:asset:path: /Volumes/Unix/aws/aws-cdk/aws-cdk/examples/cdk-examples-typescript/sam-ux-walkthrough/processor
       aws:asset:property: Code
-  TwitterApplicationConsumerKey49CC319B:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: 6Gmm4Xgx9z6SAwFZp5HDwqkwO
-      Name: /twitter-event-source/consumer_key
-    Metadata:
-      aws:cdk:path: ux-walkthrough/TwitterApplication/ConsumerKey/Resource
-  TwitterApplicationConsumerSecret62262417:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: VRPGh17ynmZhrq9LGzQ5mFOdV3VpzfNVFqEa1hcwTYmMl4JISb
-      Name: /twitter-event-source/consumer_secret
-    Metadata:
-      aws:cdk:path: ux-walkthrough/TwitterApplication/ConsumerSecret/Resource
-  TwitterApplicationAccessToken6737B971:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: 1012060925627514880-kUk2wrC3fyAn1vDS5HsXKdfqwsVFLP
-      Name: /twitter-event-source/access_token
-    Metadata:
-      aws:cdk:path: ux-walkthrough/TwitterApplication/AccessToken/Resource
-  TwitterApplicationAccessTokenSecret4AA8C04B:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Type: String
-      Value: egzX8VMEU6AOB4YD20qgpG3Av8I6YU9GsFmS851Liibeh
-      Name: /twitter-event-source/access_token_secret
-    Metadata:
-      aws:cdk:path: ux-walkthrough/TwitterApplication/AccessTokenSecret/Resource
   TwitterApplicationF3029180:
     Type: AWS::Serverless::Application
     Properties:
@@ -356,24 +324,24 @@ Resources:
           Ref: TwitterProcessor142FC142
         SSMParameterPrefix: twitter-event-source
     Metadata:
-      aws:cdk:path: ux-walkthrough/TwitterApplication/Resource
+      aws:cdk:path: sam-ux-walkthrough/TwitterApplication/Resource
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
-      Modules: aws-cdk=0.23.0,@aws-cdk/assets=0.23.0,@aws-cdk/aws-apigateway=0.23.0,@aws-cdk/aws-applicationautoscaling=0.23.0,@aws-cdk/aws-autoscaling-common=0.23.0,@aws-cdk/aws-cloudwatch=0.23.0,@aws-cdk/aws-codepipeline-api=0.23.0,@aws-cdk/aws-dynamodb=0.23.0,@aws-cdk/aws-ec2=0.23.0,@aws-cdk/aws-events=0.23.0,@aws-cdk/aws-iam=0.23.0,@aws-cdk/aws-kms=0.23.0,@aws-cdk/aws-lambda=0.23.0,@aws-cdk/aws-s3=0.23.0,@aws-cdk/aws-s3-notifications=0.23.0,@aws-cdk/aws-serverless=0.23.0,@aws-cdk/aws-sqs=0.23.0,@aws-cdk/aws-ssm=0.23.0,@aws-cdk/cdk=0.23.0,@aws-cdk/cx-api=0.23.0,jsii-runtime=node.js/v8.11.0
+      Modules: aws-cdk=0.23.0,@aws-cdk/assets=0.23.0,@aws-cdk/aws-apigateway=0.23.0,@aws-cdk/aws-applicationautoscaling=0.23.0,@aws-cdk/aws-autoscaling-common=0.23.0,@aws-cdk/aws-cloudwatch=0.23.0,@aws-cdk/aws-codepipeline-api=0.23.0,@aws-cdk/aws-dynamodb=0.23.0,@aws-cdk/aws-ec2=0.23.0,@aws-cdk/aws-events=0.23.0,@aws-cdk/aws-iam=0.23.0,@aws-cdk/aws-kms=0.23.0,@aws-cdk/aws-lambda=0.23.0,@aws-cdk/aws-s3=0.23.0,@aws-cdk/aws-s3-notifications=0.23.0,@aws-cdk/aws-serverless=0.23.0,@aws-cdk/aws-sqs=0.23.0,@aws-cdk/cdk=0.23.0,@aws-cdk/cx-api=0.23.0,jsii-runtime=node.js/v8.11.0
 Parameters:
   ApiHandlerCodeS3Bucket7D152FE8:
     Type: String
-    Description: S3 bucket for asset "ux-walkthrough/ApiHandler/Code"
+    Description: S3 bucket for asset "sam-ux-walkthrough/ApiHandler/Code"
   ApiHandlerCodeS3VersionKeyE2584D03:
     Type: String
-    Description: S3 key for asset version "ux-walkthrough/ApiHandler/Code"
+    Description: S3 key for asset version "sam-ux-walkthrough/ApiHandler/Code"
   TwitterProcessorCodeS3Bucket1CEDA333:
     Type: String
-    Description: S3 bucket for asset "ux-walkthrough/TwitterProcessor/Code"
+    Description: S3 bucket for asset "sam-ux-walkthrough/TwitterProcessor/Code"
   TwitterProcessorCodeS3VersionKey93B5EB42:
     Type: String
-    Description: S3 key for asset version "ux-walkthrough/TwitterProcessor/Code"
+    Description: S3 key for asset version "sam-ux-walkthrough/TwitterProcessor/Code"
 Outputs:
   ApiEndpoint4F160690:
     Value:

@@ -5,7 +5,7 @@ import cdk = require('@aws-cdk/cdk');
 import { TwitterServerlessApplication } from './twitter';
 
 const app = new cdk.App();
-const stack = new cdk.Stack(app, 'ux-walkthrough');
+const stack = new cdk.Stack(app, 'sam-ux-walkthrough');
 
 const countTable = new dynamodb.Table(stack, 'TweetCount', {
   partitionKey: {
@@ -44,12 +44,6 @@ countTable.grantReadWriteData(twitterProcessor.role);
 new TwitterServerlessApplication(stack, 'TwitterApplication', {
   searchText: '#serverless -filter:nativeretweets',
   tweetProcessorFunction: twitterProcessor,
-  twitterApiCredentials: {
-    consumerKey: '6Gmm4Xgx9z6SAwFZp5HDwqkwO',
-    consumerSecret: 'VRPGh17ynmZhrq9LGzQ5mFOdV3VpzfNVFqEa1hcwTYmMl4JISb',
-    accessToken: '1012060925627514880-kUk2wrC3fyAn1vDS5HsXKdfqwsVFLP',
-    accessTokenSecret: 'egzX8VMEU6AOB4YD20qgpG3Av8I6YU9GsFmS851Liibeh',
-  }
 });
 
 app.run();
