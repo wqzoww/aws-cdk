@@ -56,6 +56,7 @@
     "pkglint": "^0.23.0"
   },
   "dependencies": {
+    "@aws-cdk/aws-apigateway": "^0.23.0",
     "@aws-cdk/aws-dynamodb": "^0.23.0",
     "@aws-cdk/aws-events": "^0.23.0",
     "@aws-cdk/aws-iam": "^0.23.0",

@@ -1,0 +1,2 @@
+#!/bin/bash
+../../tools/decdk/bin/decdk > cdk.schema.json
