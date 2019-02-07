@@ -22,11 +22,8 @@ npm run build
 
 cdk synth -a ./index.js > template.yml
 
-echo sam local invoke --no-event ApiHandler5E7490E8
 sam local invoke --no-event ApiHandler5E7490E8 2>/dev/null
 
-echo "echo '[1, 2]' | sam local invoke TwitterProcessor142FC142"
 echo '[1, 2]' | sam local invoke TwitterProcessor142FC142 2>/dev/null
 
-echo sam local invoke --no-event ApiHandler5E7490E8
 sam local invoke --no-event ApiHandler5E7490E8 2>/dev/null

@@ -25,36 +25,10 @@ export class TwitterServerlessApplication extends cdk.Construct {
         SearchText: props.searchText,
         TweetProcessorFunctionName: props.tweetProcessorFunction.functionName,
         SSMParameterPrefix: TwitterServerlessApplication.SsmPrefix,
-        StreamModeEnabled: props.streamModeEnabled as any, // TODO: support primitives in parameters
-        BatchSize: props.batchSize as any,
+        StreamModeEnabled: (props.streamModeEnabled === undefined ? undefined : props.streamModeEnabled.toString()),
+        BatchSize: (props.batchSize === undefined ? undefined : props.batchSize.toString()),
         PollingFrequencyInMinutes: props.pollingFrequencyMinutes as any
       }
     });
   }
 }
-
-/*
-export interface TwitterApiCredentials {
-  consumerKey: string;
-  consumerSecret: string;
-  accessToken: string;
-  accessTokenSecret: string;
-}
-
-    new ssm.StringParameter(this, 'ConsumerKey', {
-      name: `/${TwitterServerlessApplication.SsmPrefix}/consumer_key`,
-      value: props.twitterApiCredentials.consumerKey
-    });
-    new ssm.StringParameter(this, 'ConsumerSecret', {
-      name: `/${TwitterServerlessApplication.SsmPrefix}/consumer_secret`,
-      value: props.twitterApiCredentials.consumerSecret
-    });
-    new ssm.StringParameter(this, 'AccessToken', {
-      name: `/${TwitterServerlessApplication.SsmPrefix}/access_token`,
-      value: props.twitterApiCredentials.accessToken
-    });
-    new ssm.StringParameter(this, 'AccessTokenSecret', {
-      name: `/${TwitterServerlessApplication.SsmPrefix}/access_token_secret`,
-      value: props.twitterApiCredentials.accessTokenSecret
-    });
-    */

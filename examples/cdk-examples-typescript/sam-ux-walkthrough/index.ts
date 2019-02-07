@@ -7,11 +7,26 @@ import { TwitterServerlessApplication } from './twitter';
 const app = new cdk.App();
 const stack = new cdk.Stack(app, 'sam-ux-walkthrough');
 
-const countTable = new dynamodb.Table(stack, 'TweetCount', {
+const countTable = new dynamodb.Table(stack, 'CountTable', {
   partitionKey: {
     name: 'id',
     type: dynamodb.AttributeType.String
   }
+});
+
+const tweetProcessor = new lambda.Function(stack, 'TweetProcessor', {
+  code: lambda.Code.asset('./processor'),
+  handler: 'index.handler',
+  runtime: lambda.Runtime.NodeJS810,
+  environment: {
+    tableName: countTable.tableName
+  }
+});
+countTable.grantWriteData(tweetProcessor.role);
+
+new TwitterServerlessApplication(stack, 'TwitterServerlessApplication', {
+  searchText: '#serverless -filter:nativeretweets',
+  tweetProcessorFunction: tweetProcessor
 });
 
 const endpoint = new lambda.Function(stack, 'ApiHandler', {
@@ -24,26 +39,11 @@ const endpoint = new lambda.Function(stack, 'ApiHandler', {
 });
 countTable.grantReadData(endpoint.role);
 
-const countApi = new api.LambdaRestApi(stack, 'Api', {
+const countApi = new api.LambdaRestApi(stack, 'CountApi', {
   handler: endpoint,
   proxy: false
 });
 // GET /count
 countApi.root.addResource('count').addMethod('GET');
-
-const twitterProcessor = new lambda.Function(stack, 'TwitterProcessor', {
-  code: lambda.Code.asset('./processor'),
-  handler: 'index.handler',
-  runtime: lambda.Runtime.NodeJS810,
-  environment: {
-    tableName: countTable.tableName
-  }
-});
-countTable.grantReadWriteData(twitterProcessor.role);
-
-new TwitterServerlessApplication(stack, 'TwitterApplication', {
-  searchText: '#serverless -filter:nativeretweets',
-  tweetProcessorFunction: twitterProcessor,
-});
 
 app.run();
