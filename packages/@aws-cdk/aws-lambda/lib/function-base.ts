@@ -43,14 +43,14 @@ export interface IFunction extends cdk.IConstruct, events.IEventRuleTarget, logs
 
   /**
    * Adds a permission to the Lambda resource policy.
-   * @param id The id ƒor the permission construct
+   * @param id - The id ƒor the permission construct
    */
   addPermission(id: string, permission: Permission): void;
 
   /**
    * Convenience method for creating a new {@link PipelineInvokeAction}.
    *
-   * @param props the construction properties of the new Action
+   * @param props - the construction properties of the new Action
    * @returns the newly created {@link PipelineInvokeAction}
    */
   toCodePipelineInvokeAction(props: CommonPipelineInvokeActionProps): PipelineInvokeAction;
@@ -161,7 +161,7 @@ export abstract class FunctionBase extends cdk.Construct implements IFunction  {
 
   /**
    * Adds a permission to the Lambda resource policy.
-   * @param id The id ƒor the permission construct
+   * @param id - The id ƒor the permission construct
    */
   public addPermission(id: string, permission: Permission) {
     if (!this.canCreatePermissions) {
@@ -317,14 +317,18 @@ export abstract class FunctionBase extends cdk.Construct implements IFunction  {
   /**
    * Adds an event source to this function.
    *
-   * Event sources are implemented in the @aws-cdk/aws-lambda-event-sources module.
+   * Event sources are implemented in the {@link @aws-cdk/aws-lambda-event-sources#} module.
    *
    * The following example adds an SQS Queue as an event source:
    *
-   *     import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
-   *     myFunction.addEventSource(new SqsEventSource(myQueue));
+   * @example
    *
-   * @param source The event source to bind to this function
+   * ```
+   * import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
+   * myFunction.addEventSource(new SqsEventSource(myQueue));
+   * ```
+   *
+   * @param source - The event source to bind to this function
    */
   public addEventSource(source: IEventSource) {
     source.bind(this);

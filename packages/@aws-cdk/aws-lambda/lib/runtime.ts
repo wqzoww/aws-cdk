@@ -1,6 +1,6 @@
 export interface LambdaRuntimeProps {
   /**
-   * Whether the ``ZipFile`` (aka inline code) property can be used with this runtime.
+   * Whether the `ZipFile` (aka inline code) property can be used with this runtime.
    * @default false
    */
   supportsInlineCode?: boolean;
@@ -23,7 +23,7 @@ export enum RuntimeFamily {
  * can instantiate a `Runtime` object, e.g: `new Runtime('nodejs99.99')`.
  */
 export class Runtime {
-  /** A list of all the know ``Runtime``s. */
+  /** A list of all the know `Runtime`s. */
   public static readonly All = new Array<Runtime>();
 
   public static readonly NodeJS =       new Runtime('nodejs',         RuntimeFamily.NodeJS, { supportsInlineCode: true });
@@ -47,7 +47,7 @@ export class Runtime {
   public readonly name: string;
 
   /**
-   * Whether the ``ZipFile`` (aka inline code) property can be used with this
+   * Whether the `ZipFile` (aka inline code) property can be used with this
    * runtime.
    */
   public readonly supportsInlineCode: boolean;

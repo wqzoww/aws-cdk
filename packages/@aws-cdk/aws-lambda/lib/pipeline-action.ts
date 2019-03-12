@@ -65,7 +65,7 @@ export interface CommonPipelineInvokeActionProps extends codepipeline.CommonActi
 }
 
 /**
- * Construction properties of the {@link PipelineInvokeAction Lambda invoke CodePipeline Action}.
+ * Construction properties of the {@link PipelineInvokeAction | Lambda invoke CodePipeline Action}.
  */
 export interface PipelineInvokeActionProps extends CommonPipelineInvokeActionProps {
   /**

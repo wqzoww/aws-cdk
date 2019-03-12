@@ -37,8 +37,10 @@ export interface AliasProps {
    *
    * For example, the config is
    *
+   * ```
    *    version: "1"
    *    additionalVersions: [{ version: "2", weight: 0.05 }]
+   * ```
    *
    * Then 5% of traffic will be routed to function version 2, while
    * the remaining 95% of traffic will be routed to function version 1.

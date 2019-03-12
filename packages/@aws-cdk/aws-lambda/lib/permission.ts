@@ -8,7 +8,7 @@ export interface Permission {
   /**
    * The Lambda actions that you want to allow in this statement. For example,
    * you can specify lambda:CreateFunction to specify a certain action, or use
-   * a wildcard (``lambda:*``) to grant permission to all Lambda actions. For a
+   * a wildcard (`lambda:*`) to grant permission to all Lambda actions. For a
    * list of actions, see Actions and Condition Context Keys for AWS Lambda in
    * the IAM User Guide.
    *

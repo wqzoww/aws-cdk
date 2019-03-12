@@ -7,9 +7,9 @@ import { CfnFunction } from './lambda.generated';
 export abstract class Code {
   /**
    * @returns `LambdaS3Code` associated with the specified S3 object.
-   * @param bucket The S3 bucket
-   * @param key The object key
-   * @param objectVersion Optional S3 object version
+   * @param bucket - The S3 bucket
+   * @param key - The object key
+   * @param objectVersion - Optional S3 object version
    */
   public static bucket(bucket: s3.IBucket, key: string, objectVersion?: string) {
     return new S3Code(bucket, key, objectVersion);
@@ -17,7 +17,7 @@ export abstract class Code {
 
   /**
    * @returns `LambdaInlineCode` with inline code.
-   * @param code The actual handler code (limited to 4KiB)
+   * @param code - The actual handler code (limited to 4KiB)
    */
   public static inline(code: string) {
     return new InlineCode(code);
@@ -25,7 +25,7 @@ export abstract class Code {
 
   /**
    * Loads the function code from a local disk asset.
-   * @param path Either a directory with the Lambda code bundle or a .zip file
+   * @param path - Either a directory with the Lambda code bundle or a .zip file
    */
   public static asset(path: string) {
     return new AssetCode(path);
@@ -34,7 +34,7 @@ export abstract class Code {
   /**
    * @returns Zip archives the contents of a directory on disk and uses this
    * as the lambda handler's code.
-   * @param directoryToZip The directory to zip
+   * @param directoryToZip - The directory to zip
    * @deprecated use `lambda.Code.asset(path)` (no need to specify if it's a file or a directory)
    */
   public static directory(directoryToZip: string) {
@@ -43,7 +43,7 @@ export abstract class Code {
 
   /**
    * @returns Uses a file on disk as a lambda handler's code.
-   * @param filePath The file path
+   * @param filePath - The file path
    * @deprecated use `lambda.Code.asset(path)` (no need to specify if it's a file or a directory)
    */
   public static file(filePath: string) {
@@ -59,7 +59,7 @@ export abstract class Code {
    * Called during stack synthesis to render the CodePropery for the
    * Lambda function.
    *
-   * @param resource the resource to which the code will be attached (a CfnFunction, or a CfnLayerVersion).
+   * @param resource - the resource to which the code will be attached (a CfnFunction, or a CfnLayerVersion).
    */
   public abstract _toJSON(resource?: cdk.Resource): CfnFunction.CodeProperty;
 
@@ -140,8 +140,8 @@ export class AssetCode extends Code {
   private asset?: assets.Asset;
 
   /**
-   * @param path The path to the asset file or directory.
-   * @param packaging The asset packaging format (optional, determined automatically)
+   * @param path - The path to the asset file or directory.
+   * @param packaging - The asset packaging format (optional, determined automatically)
    */
   constructor(public readonly path: string, packaging?: assets.AssetPackaging) {
     super();

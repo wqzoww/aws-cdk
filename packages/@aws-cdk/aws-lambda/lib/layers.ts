@@ -12,7 +12,7 @@ export interface LayerVersionProps {
   compatibleRuntimes?: Runtime[];
 
   /**
-   * The content of this Layer. Using *inline* (per ``code.isInline``) code is not permitted.
+   * The content of this Layer. Using *inline* (per `code.isInline`) code is not permitted.
    */
   code: Code;
 
@@ -47,8 +47,8 @@ export interface ILayerVersion extends cdk.IConstruct {
   readonly compatibleRuntimes?: Runtime[];
 
   /**
-   * Exports this layer for use in another Stack. The resulting object can be passed to the ``LayerVersion.import``
-   * function to obtain an ``ILayerVersion`` in the user stack.
+   * Exports this layer for use in another Stack. The resulting object can be passed to the `LayerVersion.import`
+   * function to obtain an `ILayerVersion` in the user stack.
    */
   export(): LayerVersionImportProps;
 
@@ -56,10 +56,10 @@ export interface ILayerVersion extends cdk.IConstruct {
    * Grants usage of this layer to specific entities. Usage within the same account where the layer is defined is always
    * allowed and does not require calling this method. Note that the principal that creates the Lambda function using
    * the layer (for example, a CloudFormation changeset execution role) also needs to have the
-   * ``lambda:GetLayerVersion`` permission on the layer version.
+   * `lambda:GetLayerVersion` permission on the layer version.
    *
-   * @param id the ID of the grant in the construct tree.
-   * @param grantee the identification of the grantee.
+   * @param id - the ID of the grant in the construct tree.
+   * @param grantee - the identification of the grantee.
    */
   grantUsage(id: string, grantee: LayerVersionUsageGrantee): ILayerVersion
 }
@@ -98,15 +98,15 @@ export abstract class LayerVersionBase extends cdk.Construct implements ILayerVe
  */
 export interface LayerVersionUsageGrantee {
   /**
-   * The AWS Account id of the account that is authorized to use a Lambda Layer Version. The wild-card ``'*'`` can be
-   * used to grant access to "any" account (or any account in an organization when ``organizationId`` is specified).
+   * The AWS Account id of the account that is authorized to use a Lambda Layer Version. The wild-card `'*'` can be
+   * used to grant access to "any" account (or any account in an organization when `organizationId` is specified).
    */
   accountId: string;
 
   /**
    * The ID of the AWS Organization to hwich the grant is restricted.
    *
-   * Can only be specified if ``accountId`` is ``'*'``
+   * Can only be specified if `accountId` is `'*'`
    */
   organizationId?: string;
 }
@@ -133,9 +133,9 @@ export class LayerVersion extends LayerVersionBase {
   /**
    * Imports a Layer that has been defined externally.
    *
-   * @param scope the parent Construct that will use the imported layer.
-   * @param id    the id of the imported layer in the construct tree.
-   * @param props the properties of the imported layer.
+   * @param scope - the parent Construct that will use the imported layer.
+   * @param id    - the id of the imported layer in the construct tree.
+   * @param props - the properties of the imported layer.
    */
   public static import(scope: cdk.Construct, id: string, props: LayerVersionImportProps): ILayerVersion {
     return new ImportedLayerVersion(scope, id, props);
@@ -199,7 +199,7 @@ export interface SingletonLayerVersionProps extends LayerVersionProps {
 
 /**
  * A Singleton Lambda Layer Version. The construct gurantees exactly one LayerVersion will be created in a given Stack
- * for the provided ``uuid``. It is recommended to use ``uuidgen`` to create a new ``uuid`` each time a new singleton
+ * for the provided `uuid`. It is recommended to use `uuidgen` to create a new `uuid` each time a new singleton
  * layer is created.
  */
 export class SingletonLayerVersion extends cdk.Construct implements ILayerVersion {

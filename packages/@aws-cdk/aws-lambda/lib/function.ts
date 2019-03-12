@@ -216,11 +216,15 @@ export class Function extends FunctionBase {
    * Creates a Lambda function object which represents a function not defined
    * within this stack.
    *
-   *    Lambda.import(this, 'MyImportedFunction', { lambdaArn: new LambdaArn('arn:aws:...') });
+   * @example
    *
-   * @param parent The parent construct
-   * @param id The name of the lambda construct
-   * @param props A reference to a Lambda function. Can be created manually (see
+   * ```ts
+   * Lambda.import(this, 'MyImportedFunction', { lambdaArn: new LambdaArn('arn:aws:...') });
+   * ```
+   *
+   * @param parent - The parent construct
+   * @param id - The name of the lambda construct
+   * @param props - A reference to a Lambda function. Can be created manually (see
    * example above) or obtained through a call to `lambda.export()`.
    */
   public static import(scope: cdk.Construct, id: string, props: FunctionImportProps): IFunction {
@@ -412,8 +416,8 @@ export class Function extends FunctionBase {
   /**
    * Adds an environment variable to this Lambda function.
    * If this is a ref to a Lambda function, this operation results in a no-op.
-   * @param key The environment variable key.
-   * @param value The environment variable's value.
+   * @param key - The environment variable key.
+   * @param value - The environment variable's value.
    */
   public addEnvironment(key: string, value: any): this {
     if (!this.environment) {
@@ -427,9 +431,10 @@ export class Function extends FunctionBase {
   /**
    * Adds a Lambda Layer to this Lambda function.
    *
-   * @param layer the layer to be added.
+   * Cannot be called if there are already 5 layers on this function, or the layer is incompatible with this function's
+   * runtime.
    *
-   * @throws if there are already 5 layers on this function, or the layer is incompatible with this function's runtime.
+   * @param layer - the layer to be added.
    */
   public addLayer(layer: ILayerVersion): this {
     if (this.layers.length === 5) {
@@ -453,10 +458,10 @@ export class Function extends FunctionBase {
    * All versions should have distinct names, and you should not delete versions
    * as long as your Alias needs to refer to them.
    *
-   * @param name A unique name for this version
-   * @param codeSha256 The SHA-256 hash of the most recently deployed Lambda source code, or
+   * @param name - A unique name for this version
+   * @param codeSha256 - The SHA-256 hash of the most recently deployed Lambda source code, or
    *  omit to skip validation.
-   * @param description A description for this version.
+   * @param description - A description for this version.
    * @returns A new Version object.
    */
   public addVersion(name: string, codeSha256?: string, description?: string): Version {

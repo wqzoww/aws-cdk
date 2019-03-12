@@ -7,7 +7,7 @@ export interface IEventSource {
   /**
    * Called by `lambda.addEventSource` to allow the event source to bind to this
    * function.
-   * @param target That lambda function to bind to.
+   * @param target - That lambda function to bind to.
    */
   bind(target: FunctionBase): void;
 }

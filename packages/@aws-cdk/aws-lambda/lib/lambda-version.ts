@@ -42,7 +42,7 @@ export interface VersionProps {
  *
  * If you want to ensure that you're associating the right version with
  * the right deployment, specify the `codeSha256` property while
- * creating the `Version.
+ * creating the `Version`.
  */
 export class Version extends Construct {
   /**
